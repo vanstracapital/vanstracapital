@@ -365,6 +365,27 @@ const VanstraBank = (function() {
         return getState().supportTickets;
     }
 
+    // Get current user
+    function getCurrentUser() {
+        const state = getState();
+        const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+        const vanstraUser = Object.values(vanstraUsers).find(u => u.email === state.user.email);
+        
+        if (vanstraUser) {
+            return {
+                ...state.user,
+                accountStatus: vanstraUser.accountStatus || 'active',
+                isOnline: vanstraUser.isOnline,
+                id: vanstraUser.id
+            };
+        }
+        
+        return {
+            ...state.user,
+            accountStatus: 'active'
+        };
+    }
+
     // Reset to defaults (for testing)
     function reset() {
         defaultState.transactions = sampleTransactions;
@@ -393,6 +414,7 @@ const VanstraBank = (function() {
         getTransactions,
         submitTicket,
         getTickets,
+        getCurrentUser,
         generateTransactionId,
         generateReference,
         reset

@@ -93,6 +93,98 @@
             font-size: 14px;
         }
         
+        /* Account Status Banner */
+        .account-status-banner {
+            display: none;
+            padding: 1rem 1.5rem;
+            margin: 1rem;
+            border-radius: 12px;
+            font-weight: 600;
+            text-align: center;
+            animation: slideDown 0.3s ease-in-out;
+        }
+        
+        .account-status-banner.active {
+            display: block;
+        }
+        
+        .account-status-banner.frozen {
+            background: #FEE2E2;
+            color: #991B1B;
+            border-left: 4px solid #DC2626;
+        }
+        
+        .account-status-banner.suspended {
+            background: #FEF3C7;
+            color: #92400E;
+            border-left: 4px solid #F59E0B;
+        }
+        
+        .account-status-banner.blocked {
+            background: #FECACA;
+            color: #7F1D1D;
+            border-left: 4px solid #EF4444;
+        }
+        
+        .account-status-banner.disabled {
+            background: #F3F4F6;
+            color: #374151;
+            border-left: 4px solid #9CA3AF;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .restricted-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .restricted-overlay.active {
+            display: flex;
+        }
+        
+        .restricted-message {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .restricted-message-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .restricted-message h2 {
+            color: var(--navy);
+            margin: 0.5rem 0;
+            font-size: 1.5rem;
+        }
+        
+        .restricted-message p {
+            color: #6B7280;
+            margin: 0.5rem 0;
+        }
+        
         /* Balance Card */
         .balance-section {
             background: linear-gradient(135deg, var(--navy) 0%, var(--slate) 100%);
@@ -634,6 +726,21 @@
         </div>
     </header>
 
+    <!-- Account Status Banner -->
+    <div class="account-status-banner" id="accountStatusBanner">
+        <span id="accountStatusText"></span>
+    </div>
+    
+    <!-- Restricted Access Overlay -->
+    <div class="restricted-overlay" id="restrictedOverlay">
+        <div class="restricted-message">
+            <div class="restricted-message-icon">⛔</div>
+            <h2 id="restrictedTitle">Account Restricted</h2>
+            <p id="restrictedMessage">Your account has been restricted by the bank administration.</p>
+            <p style="font-size: 12px; color: #9CA3AF; margin-top: 1rem;">Please contact customer support for more information.</p>
+        </div>
+    </div>
+
     <!-- Balance Section -->
     <section class="balance-section">
         <div class="balance-label">Total Balance</div>
@@ -1027,6 +1134,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
             renderTransactions();
+            checkAccountStatus();
+            listenForAccountUpdates();
         });
 
         function loadUserData() {
@@ -1085,6 +1194,110 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        // Account Status Functions
+        function checkAccountStatus() {
+            const currentUser = VanstraBank.getCurrentUser();
+            
+            if (!currentUser) return;
+            
+            const status = currentUser.accountStatus || 'active';
+            const banner = document.getElementById('accountStatusBanner');
+            const overlay = document.getElementById('restrictedOverlay');
+            
+            // Update banner based on status
+            if (status === 'frozen') {
+                banner.classList.add('active', 'frozen');
+                document.getElementById('accountStatusText').textContent = '❄️ Your account has been FROZEN. All transactions are restricted. Contact support for details.';
+                disableAllActions();
+            } else if (status === 'suspended') {
+                banner.classList.add('active', 'suspended');
+                document.getElementById('accountStatusText').textContent = '⏸️ Your account has been SUSPENDED. Please contact customer support.';
+                disableAllActions();
+            } else if (status === 'blocked') {
+                banner.classList.add('active', 'blocked');
+                document.getElementById('accountStatusText').textContent = '🚫 Your account has been BLOCKED. Contact support immediately.';
+                overlay.classList.add('active');
+                document.getElementById('restrictedTitle').textContent = 'Account Blocked';
+                document.getElementById('restrictedMessage').textContent = 'Your account has been blocked. Please contact customer support.';
+                disableAllActions();
+            } else if (status === 'disabled') {
+                banner.classList.add('active', 'disabled');
+                document.getElementById('accountStatusText').textContent = '⚠️ Your account has been DISABLED. Please contact support.';
+                disableAllActions();
+            }
+        }
+
+        function disableAllActions() {
+            // Disable all quick action buttons
+            document.querySelectorAll('.quick-action').forEach(btn => {
+                btn.style.opacity = '0.5';
+                btn.style.pointerEvents = 'none';
+                btn.title = 'This action is not available for your account status';
+            });
+        }
+
+        function listenForAccountUpdates() {
+            // Check every 5 seconds for account status changes
+            setInterval(() => {
+                const currentUser = VanstraBank.getCurrentUser();
+                const status = currentUser ? (currentUser.accountStatus || 'active') : 'active';
+                
+                // Reload if status changed
+                if (window.lastAccountStatus && window.lastAccountStatus !== status) {
+                    location.reload();
+                }
+                window.lastAccountStatus = status;
+            }, 5000);
+            
+            // Also check localStorage for vanstraUsers updates
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'vanstraUsers') {
+                    checkAccountStatus();
+                }
+            });
+        }
+
+        // Restrict specific actions
+        function openTransferModal() {
+            const status = VanstraBank.getCurrentUser()?.accountStatus || 'active';
+            if (status !== 'active') {
+                showRestrictedMessage('Transfer Blocked', `Your account is currently ${status}. You cannot perform transfers.`);
+                return;
+            }
+            // Original function logic
+            openModal('transferModal');
+        }
+
+        function openDepositModal() {
+            const status = VanstraBank.getCurrentUser()?.accountStatus || 'active';
+            if (status !== 'active') {
+                showRestrictedMessage('Deposit Blocked', `Your account is currently ${status}. You cannot make deposits.`);
+                return;
+            }
+            // Original function logic
+            openModal('depositModal');
+        }
+
+        function openPayBillModal() {
+            const status = VanstraBank.getCurrentUser()?.accountStatus || 'active';
+            if (status !== 'active') {
+                showRestrictedMessage('Bill Payment Blocked', `Your account is currently ${status}. You cannot pay bills.`);
+                return;
+            }
+            // Original function logic
+            openModal('payBillModal');
+        }
+
+        function showRestrictedMessage(title, message) {
+            const overlay = document.getElementById('restrictedOverlay');
+            document.getElementById('restrictedTitle').textContent = title;
+            document.getElementById('restrictedMessage').textContent = message;
+            overlay.classList.add('active');
+            setTimeout(() => {
+                overlay.classList.remove('active');
+            }, 3500);
         }
 
         // Modal functions

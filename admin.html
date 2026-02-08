@@ -3,601 +3,1347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel - Vanstra Capital</title>
-    <meta name="description" content="Vanstra Capital Administrative Panel - Manage customer support, view accounts, and monitor system status.">
+    <title>Admin Panel - Vanstra Bank</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- Core Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
-    
     <!-- Custom Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
+        * {
+            box-sizing: border-box;
+        }
+        
         :root {
-            --midnight-navy: #041225;
-            --deep-slate: #0B2A3F;
-            --gold-accent: #C89A3A;
-            --soft-white: #F7F8FA;
-            --gray: #8B96A3;
+            --navy: #041225;
+            --slate: #0B2A3F;
+            --gold: #C89A3A;
         }
         
         body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--soft-white);
-            color: var(--midnight-navy);
-        }
-        
-        .font-serif {
-            font-family: 'Playfair Display', serif;
-        }
-        
-        .gold-accent {
-            color: var(--gold-accent);
-        }
-        
-        .bg-gold {
-            background-color: var(--gold-accent);
-        }
-        
-        .text-navy {
-            color: var(--midnight-navy);
-        }
-        
-        .bg-navy {
-            background-color: var(--midnight-navy);
+            background: #F1F5F9;
+            color: #1F2937;
+            margin: 0;
+            padding: 0;
         }
         
         .sidebar {
-            background-color: var(--midnight-navy);
-            min-height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 260px;
+            background: var(--navy);
+            color: white;
+            z-index: 100;
+        }
+        
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .sidebar-logo img {
+            width: 36px;
+            height: 36px;
+        }
+        
+        .sidebar-logo span {
+            font-weight: 700;
+            font-size: 1.125rem;
         }
         
         .sidebar-nav {
-            background-color: var(--deep-slate);
+            padding: 1rem 0;
         }
         
         .nav-item {
-            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.875rem 1.5rem;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
         }
         
         .nav-item:hover {
-            background-color: rgba(200, 154, 58, 0.1);
+            background: rgba(255,255,255,0.05);
+            color: white;
         }
         
         .nav-item.active {
-            background-color: var(--gold-accent);
-            color: white;
+            background: rgba(200, 154, 58, 0.1);
+            color: var(--gold);
+            border-left-color: var(--gold);
+        }
+        
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .header-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #D1FAE5;
+            color: #065F46;
+            border-radius: 9999px;
+            font-size: 13px;
+                font-weight: 500;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-label {
+            font-size: 13px;
+            color: #6B7280;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+        
+        .stat-change {
+            font-size: 12px;
+            margin-top: 0.25rem;
+        }
+        
+        .stat-change.positive {
+            color: #10B981;
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
         }
         
         .card {
             background: white;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .card-header {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .card-title {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .card-body {
+            padding: 1rem 1.25rem;
+        }
+        
+        .table {
+            width: 100%;
+        }
+        
+        .table th {
+            text-align: left;
+            padding: 0.75rem;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .table td {
+            padding: 0.875rem 0.75rem;
+            border-bottom: 1px solid #F3F4F6;
+            font-size: 14px;
+        }
+        
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            color: white;
+        }
+        
+        .user-info {
+            line-height: 1.4;
+        }
+        
+        .user-name {
+            font-weight: 600;
+        }
+        
+        .user-email {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
+        .online-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 12px;
+        }
+        
+        .online-indicator.online {
+            color: #10B981;
+        }
+        
+        .online-indicator.offline {
+            color: #9CA3AF;
+        }
+        
+        .online-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        
+        .online-indicator.online .online-dot {
+            background: #10B981;
+        }
+        
+        .online-indicator.offline .online-dot {
+            background: #D1D5DB;
+        }
+        
+        .event-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        
+        .event-item:last-child {
+            border-bottom: none;
+        }
+        
+        .event-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .event-icon.login {
+            background: #D1FAE5;
+            color: #059669;
+        }
+        
+        .event-icon.logout {
+            background: #FEE2E2;
+            color: #DC2626;
+        }
+        
+        .event-icon.transaction {
+            background: #DBEAFE;
+            color: #2563EB;
+        }
+        
+        .event-icon.user {
+            background: #F3E8FF;
+            color: #7C3AED;
+        }
+        
+        .event-icon.pin {
+            background: #FEF3C7;
+            color: #D97706;
+        }
+        
+        .event-content {
+            flex: 1;
+        }
+        
+        .event-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .event-time {
+            font-size: 12px;
+            color: #9CA3AF;
+            margin-top: 0.25rem;
+        }
+        
+        .chat-panel {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 200;
             transition: all 0.3s ease;
         }
         
-        .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        .chat-panel.minimized {
+            height: 60px;
+            width: 200px;
         }
         
-        .status-active {
-            background-color: #10B981;
+        .chat-panel.minimized .chat-messages,
+        .chat-panel.minimized .chat-input-area {
+            display: none;
+        }
+        
+        .chat-header {
+            background: var(--navy);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        
+        .chat-minimize-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            transition: transform 0.2s;
+        }
+        
+        .chat-minimize-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .chat-minimize-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .chat-select {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #F8F9FA;
+        }
+        
+        .chat-message {
+            max-width: 80%;
+            padding: 0.625rem 0.875rem;
+            border-radius: 12px;
+            margin-bottom: 0.5rem;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        
+        .chat-message.user {
+            background: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .chat-message.admin {
+            background: var(--gold);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 0.625rem 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 9999px;
+            font-size: 14px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+        
+        .chat-send {
+            width: 40px;
+            height: 40px;
+            background: var(--gold);
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .chat-send svg {
+            width: 18px;
+            height: 18px;
             color: white;
         }
         
-        .status-pending {
-            background-color: #F59E0B;
-            color: white;
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
         }
         
-        .status-suspended {
-            background-color: #EF4444;
-            color: white;
+        .badge-success {
+            background: #D1FAE5;
+            color: #065F46;
         }
         
-        .priority-high {
-            background-color: #EF4444;
-            color: white;
+        .badge-warning {
+            background: #FEF3C7;
+            color: #92400E;
         }
         
-        .priority-medium {
-            background-color: #F59E0B;
-            color: white;
+        .badge-danger {
+            background: #FEE2E2;
+            color: #991B1B;
         }
         
-        .priority-low {
-            background-color: #10B981;
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 200px;
+            }
+            .main-content {
+                margin-left: 200px;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        .action-btn {
+            padding: 0.25rem 0.5rem;
+            margin: 0 0.25rem;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn-edit {
+            background: var(--gold);
             color: white;
+        }
+
+        .action-btn-edit:hover {
+            opacity: 0.8;
+        }
+
+        .action-btn-suspend {
+            background: #F59E0B;
+            color: white;
+        }
+
+        .action-btn-suspend:hover {
+            opacity: 0.8;
+        }
+
+        .action-btn-freeze {
+            background: #3B82F6;
+            color: white;
+        }
+
+        .action-btn-freeze:hover {
+            opacity: 0.8;
+        }
+
+        .action-btn-block {
+            background: #EF4444;
+            color: white;
+        }
+
+        .action-btn-block:hover {
+            opacity: 0.8;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 300;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--navy);
+        }
+
+        .modal-close {
+            float: right;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #6B7280;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .modal-close:hover {
+            color: var(--navy);
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(200, 154, 58, 0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn-save {
+            background: var(--gold);
+            color: white;
+        }
+
+        .modal-btn-save:hover {
+            opacity: 0.9;
+        }
+
+        .modal-btn-cancel {
+            background: #E5E7EB;
+            color: var(--navy);
+        }
+
+        .modal-btn-cancel:hover {
+            background: #D1D5DB;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="sidebar w-64 text-white">
-            <div class="p-6">
-                <div class="flex items-center mb-8">
-                    <img src="resources/logo-primary.svg" alt="Vanstra Capital" class="h-10 w-auto">
-                    <span class="ml-3 text-xl font-serif font-bold">Admin Panel</span>
-                </div>
-                
-                <nav class="space-y-2">
-                    <a href="#" class="nav-item active flex items-center px-4 py-3 rounded-lg" data-section="dashboard">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z"></path>
-                        </svg>
-                        Dashboard
-                    </a>
-                    
-                    <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg" data-section="messages">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
-                        Support Messages
-                        <span id="messageCount" class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">0</span>
-                    </a>
-                    
-                    <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg" data-section="accounts">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                        User Accounts
-                    </a>
-                    
-                    <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg" data-section="analytics">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                        Analytics
-                    </a>
-                    
-                    <a href="#" class="nav-item flex items-center px-4 py-3 rounded-lg" data-section="settings">
-                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Settings
-                    </a>
-                </nav>
-            </div>
-            
-            <div class="absolute bottom-6 left-6 right-6">
-                <a href="index.html" class="nav-item flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-red-400 hover:text-white">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                    </svg>
-                    Logout
-                </a>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <img src="logo-v.png" alt="Vanstra">
+                <span>Admin Panel</span>
             </div>
         </div>
-        
-        <!-- Main Content -->
-        <div class="flex-1 p-8">
-            <!-- Dashboard Section -->
-            <div id="dashboard-section" class="section-content">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-serif font-bold text-navy mb-2">Admin Dashboard</h1>
-                    <p class="text-gray-600">Welcome back, Admin. Here's what's happening with Vanstra Capital today.</p>
+        <nav class="sidebar-nav">
+            <div class="nav-item active" onclick="showSection('dashboard')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+                </svg>
+                Dashboard
+            </div>
+            <div class="nav-item" onclick="showSection('users')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                Users
+            </div>
+            <div class="nav-item" onclick="showSection('transactions')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                Transactions
+            </div>
+            <div class="nav-item" onclick="showSection('chat')">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                Live Chat
+            </div>
+            <div class="nav-item" onclick="logout()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+                Logout
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1 class="header-title">Dashboard Overview</h1>
+            <div class="header-actions">
+                <div class="status-badge">
+                    <span class="status-dot"></span>
+                    <span>System Online</span>
                 </div>
-                
-                <!-- Stats Cards -->
-                <div class="grid md:grid-cols-4 gap-6 mb-8">
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="text-3xl font-bold text-navy" id="totalAccounts">5</div>
-                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600">Total Accounts</div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="text-3xl font-bold text-navy" id="totalBalance">€71,008.40</div>
-                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600">Total Balance</div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="text-3xl font-bold text-navy" id="activeMessages">0</div>
-                            <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600">Support Messages</div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="text-3xl font-bold text-navy">99.9%</div>
-                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div class="text-sm text-gray-600">System Uptime</div>
-                    </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Users</div>
+                <div class="stat-value" id="totalUsers">0</div>
+                <div class="stat-change positive">+0 today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Online Now</div>
+                <div class="stat-value" id="onlineUsers">0</div>
+                <div class="stat-change positive">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Balance</div>
+                <div class="stat-value" id="totalBalance">€0</div>
+                <div class="stat-change positive">All accounts</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Transactions Today</div>
+                <div class="stat-value" id="todayTransactions">0</div>
+                <div class="stat-change positive">+0 vs yesterday</div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+            <!-- Users Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Users</h2>
+                    <span class="text-sm text-gray-500" id="userCount">0 users</span>
                 </div>
-                
-                <!-- Recent Activity -->
-                <div class="card p-6">
-                    <h3 class="text-xl font-semibold mb-4">Recent Activity</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium">New account opened</div>
-                                <div class="text-sm text-gray-600">Thomas Becker - Account #7849</div>
-                            </div>
-                            <div class="text-sm text-gray-500">2 hours ago</div>
-                        </div>
-                        
-                        <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium">Security check completed</div>
-                                <div class="text-sm text-gray-600">System scan - No issues detected</div>
-                            </div>
-                            <div class="text-sm text-gray-500">4 hours ago</div>
-                        </div>
-                        
-                        <div class="flex items-center p-4 bg-gray-50 rounded-lg">
-                            <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-4">
-                                <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <div class="font-medium">Support message received</div>
-                                <div class="text-sm text-gray-600">Customer inquiry about wire transfers</div>
-                            </div>
-                            <div class="text-sm text-gray-500">6 hours ago</div>
-                        </div>
+                <div class="card-body" style="padding: 0;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Account</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Last Login</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Activity Feed -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Live Activity</h2>
+                    <span class="text-sm text-gray-500">Real-time updates</span>
+                </div>
+                <div class="card-body">
+                    <div id="activityFeed">
+                        <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
+        </div>
+    </main>
+
+    <!-- User Management Modal -->
+    <div class="modal" id="userManagementModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeEditUserModal()">&times;</button>
+            <div class="modal-header">Edit User Account</div>
             
-            <!-- Support Messages Section -->
-            <div id="messages-section" class="section-content hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-serif font-bold text-navy mb-2">Support Messages</h1>
-                    <p class="text-gray-600">Manage customer inquiries and support requests.</p>
+            <form id="userEditForm" onsubmit="saveUserChanges(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="modalUserName" readonly style="background-color: #F3F4F6;">
                 </div>
                 
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-semibold">Customer Messages</h3>
-                        <div class="flex space-x-2">
-                            <button class="px-4 py-2 bg-gold-accent text-white rounded-lg hover:bg-opacity-90">All</button>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Unread</button>
-                            <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Replied</button>
-                        </div>
-                    </div>
-                    
-                    <div id="messagesList" class="space-y-4">
-                        <!-- Messages will be populated by JavaScript -->
-                    </div>
-                </div>
-            </div>
-            
-            <!-- User Accounts Section -->
-            <div id="accounts-section" class="section-content hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-serif font-bold text-navy mb-2">User Accounts</h1>
-                    <p class="text-gray-600">View and manage customer accounts.</p>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="modalUserEmail" readonly style="background-color: #F3F4F6;">
                 </div>
                 
-                <div class="card p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-xl font-semibold">Account List</h3>
-                        <div class="flex space-x-2">
-                            <input type="text" placeholder="Search accounts..." class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-accent">
-                            <button class="px-4 py-2 bg-gold-accent text-white rounded-lg hover:bg-opacity-90">Search</button>
-                        </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-gray-200">
-                                    <th class="text-left py-3 px-4 font-semibold">Account ID</th>
-                                    <th class="text-left py-3 px-4 font-semibold">Customer Name</th>
-                                    <th class="text-left py-3 px-4 font-semibold">Email</th>
-                                    <th class="text-left py-3 px-4 font-semibold">Balance</th>
-                                    <th class="text-left py-3 px-4 font-semibold">Status</th>
-                                    <th class="text-left py-3 px-4 font-semibold">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="accountsTable">
-                                <!-- Accounts will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Analytics Section -->
-            <div id="analytics-section" class="section-content hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-serif font-bold text-navy mb-2">Analytics</h1>
-                    <p class="text-gray-600">Monitor system performance and user activity.</p>
+                <div class="form-group">
+                    <label>Account Balance (€)</label>
+                    <input type="number" id="modalUserBalance" step="0.01" required>
                 </div>
                 
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-semibold mb-4">Account Growth</h3>
-                        <div id="accountGrowthChart" style="height: 300px;"></div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <h3 class="text-xl font-semibold mb-4">Revenue Overview</h3>
-                        <div id="revenueChart" style="height: 300px;"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Settings Section -->
-            <div id="settings-section" class="section-content hidden">
-                <div class="mb-8">
-                    <h1 class="text-3xl font-serif font-bold text-navy mb-2">Settings</h1>
-                    <p class="text-gray-600">Configure admin panel preferences and system settings.</p>
+                <div class="form-group">
+                    <label>Account Status</label>
+                    <select id="modalUserStatus" required>
+                        <option value="active">Active</option>
+                        <option value="frozen">Frozen</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="blocked">Blocked</option>
+                        <option value="disabled">Disabled</option>
+                    </select>
                 </div>
                 
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-xl font-semibold mb-4">System Configuration</h3>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <span>Maintenance Mode</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-accent"></div>
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center justify-between">
-                                <span>Email Notifications</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-accent"></div>
-                                </label>
-                            </div>
-                            
-                            <div class="flex items-center justify-between">
-                                <span>Auto-Reply</span>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" class="sr-only peer">
-                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-accent"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <h3 class="text-xl font-semibold mb-4">Admin Profile</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Admin Email</label>
-                                <input type="email" value="admin@vanstra.com" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-accent">
-                            </div>
-                            
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Change Password</label>
-                                <input type="password" placeholder="New password" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold-accent">
-                            </div>
-                            
-                            <button class="w-full px-4 py-2 bg-gold-accent text-white rounded-lg hover:bg-opacity-90">
-                                Save Changes
-                            </button>
-                        </div>
-                    </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="modal-btn modal-btn-save">Save Changes</button>
+                    <button type="button" class="modal-btn modal-btn-cancel" onclick="closeEditUserModal()">Cancel</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
-    
+
+    <!-- Chat Panel -->
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-header" onclick="toggleChatMinimize()">
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                <select class="chat-select" id="chatUserSelect" onchange="loadUserChat(event)" style="flex: 1;" onclick="event.stopPropagation()">
+                    <option value="">Select user...</option>
+                </select>
+                <span style="font-size: 13px; color: rgba(255,255,255,0.7);">Live Support</span>
+            </div>
+            <button class="chat-minimize-btn" onclick="toggleChatMinimize(event)" title="Minimize chat">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+            </button>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div style="text-align: center; color: #9CA3AF; padding: 2rem;">
+                Select a user to view chat
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" class="chat-input" id="chatInput" placeholder="Type a message..." onkeypress="handleChatKeypress(event)">
+            <button class="chat-send" onclick="sendAdminReply()">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="bank-core-v2.js"></script>
     <script>
-        // Admin panel functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeAdminPanel();
-            loadSupportMessages();
-            loadUserAccounts();
-            initializeCharts();
-        });
+        // Admin credentials (simple check)
+        const ADMIN_PASSWORD = 'admin123';
         
-        function initializeAdminPanel() {
-            // Navigation
-            const navItems = document.querySelectorAll('.nav-item[data-section]');
-            navItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const section = this.getAttribute('data-section');
-                    showSection(section);
-                    
-                    // Update active nav item
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    this.classList.add('active');
-                });
-            });
-            
-            // Check for unread messages
-            updateMessageCount();
-        }
-        
-        function showSection(sectionName) {
-            // Hide all sections
-            document.querySelectorAll('.section-content').forEach(section => {
-                section.classList.add('hidden');
-            });
-            
-            // Show selected section
-            document.getElementById(sectionName + '-section').classList.remove('hidden');
-        }
-        
-        function loadSupportMessages() {
-            const messages = JSON.parse(localStorage.getItem('adminMessages') || '[]');
-            const messagesList = document.getElementById('messagesList');
-            
-            if (messages.length === 0) {
-                messagesList.innerHTML = '<div class="text-center text-gray-500 py-8">No support messages yet.</div>';
-                return;
+        // Check admin access
+        if (!sessionStorage.getItem('adminAuthenticated')) {
+            const password = prompt('Enter admin password:');
+            if (password !== ADMIN_PASSWORD) {
+                alert('Access denied');
+                window.location.href = 'login.html';
+            } else {
+                sessionStorage.setItem('adminAuthenticated', 'true');
             }
-            
-            messagesList.innerHTML = messages.map(message => `
-                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                    <div class="flex items-start justify-between mb-2">
-                        <div>
-                            <div class="font-semibold">${message.name}</div>
-                            <div class="text-sm text-gray-600">${message.email}</div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <span class="priority-${message.priority} px-2 py-1 rounded-full text-xs">${message.priority}</span>
-                            <span class="text-sm text-gray-500">${new Date(message.timestamp).toLocaleDateString()}</span>
-                        </div>
-                    </div>
-                    <div class="text-gray-700 mb-3">${message.message}</div>
-                    <div class="flex space-x-2">
-                        <button onclick="replyToMessage('${message.id}')" class="px-3 py-1 bg-gold-accent text-white rounded text-sm hover:bg-opacity-90">Reply</button>
-                        <button onclick="markAsResolved('${message.id}')" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-50">Mark Resolved</button>
-                    </div>
-                </div>
-            `).join('');
         }
-        
-        function loadUserAccounts() {
-            const accounts = JSON.parse(localStorage.getItem('mockUserAccounts') || '[]');
-            const accountsTable = document.getElementById('accountsTable');
+
+        let currentChatUser = null;
+        let refreshInterval;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create mock users if none exist
+            createMockUsersIfNeeded();
+            loadDashboard();
+            startRealtimeUpdates();
             
-            accountsTable.innerHTML = accounts.map(account => `
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                    <td class="py-3 px-4">#${account.id.toString().padStart(4, '0')}</td>
-                    <td class="py-3 px-4">${account.name}</td>
-                    <td class="py-3 px-4">${account.email}</td>
-                    <td class="py-3 px-4 font-semibold">€${account.balance.toLocaleString('de-DE', {minimumFractionDigits: 2})}</td>
-                    <td class="py-3 px-4">
-                        <span class="status-${account.status.toLowerCase()} px-2 py-1 rounded-full text-xs">${account.status}</span>
+            // Listen for events
+            VanstraBank.on('user_created', () => loadDashboard());
+            VanstraBank.on('user_login', () => loadDashboard());
+            VanstraBank.on('user_logout', () => loadDashboard());
+            VanstraBank.on('transaction', () => loadDashboard());
+            VanstraBank.on('pin_failed', (data) => {
+                addActivityEvent('pin', `PIN failed for user`, data.userId);
+            });
+            VanstraBank.on('chat_message', (msg) => {
+                if (currentChatUser === msg.userId) {
+                    addChatMessage(msg.message, 'user');
+                }
+            });
+        });
+
+        function loadDashboard() {
+            const users = VanstraBank.getAllUsers();
+            
+            // Update stats
+            document.getElementById('totalUsers').textContent = users.length;
+            document.getElementById('onlineUsers').textContent = users.filter(u => u.isOnline).length;
+            document.getElementById('userCount').textContent = users.length + ' users';
+            
+            const totalBalance = users.reduce((sum, u) => sum + u.balance, 0);
+            document.getElementById('totalBalance').textContent = '€' + totalBalance.toLocaleString('de-DE', {minimumFractionDigits: 2});
+            
+            // Update users table
+            const tableBody = document.getElementById('usersTable');
+            tableBody.innerHTML = users.map(user => `
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-avatar">${user.fullName.split(' ').map(n => n[0]).join('')}</div>
+                            <div class="user-info">
+                                <div class="user-name">${user.fullName}</div>
+                                <div class="user-email">${user.email}</div>
+                            </div>
+                        </div>
                     </td>
-                    <td class="py-3 px-4">
-                        <div class="flex space-x-2">
-                            <button class="text-blue-600 hover:text-blue-800 text-sm">View</button>
-                            <button class="text-gold-accent hover:text-opacity-80 text-sm">Edit</button>
+                    <td>
+                        <div style="font-family: monospace; font-size: 13px;">${user.accountNumber}</div>
+                        <div style="font-size: 12px; color: #6B7280;">${user.accountType}</div>
+                    </td>
+                    <td>
+                        <strong>€${user.balance.toLocaleString('de-DE', {minimumFractionDigits: 2})}</strong>
+                    </td>
+                    <td>
+                        <span class="online-indicator ${user.isOnline ? 'online' : 'offline'}">
+                            <span class="online-dot"></span>
+                            ${user.isOnline ? 'Online' : 'Offline'}
+                        </span>
+                        ${user.accountStatus && user.accountStatus !== 'active' ? `<div style="font-size: 11px; color: #EF4444; font-weight: 600; margin-top: 4px;">⚠️ ${user.accountStatus.toUpperCase()}</div>` : ''}
+                    </td>
+                    <td>
+                        ${user.lastLogin ? new Date(user.lastLogin).toLocaleString('de-DE', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'}) : 'Never'}
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                            <button class="action-btn action-btn-edit" onclick="openEditUserModal('${user.id}', '${user.fullName}', '${user.email}', ${user.balance})">Edit</button>
+                            <button class="action-btn action-btn-freeze" onclick="freezeUserAccount('${user.id}', '${user.fullName}')">Freeze</button>
+                            <button class="action-btn action-btn-suspend" onclick="suspendUserAccount('${user.id}', '${user.fullName}')">Suspend</button>
+                            <button class="action-btn action-btn-block" onclick="blockUserAccount('${user.id}', '${user.fullName}')">Block</button>
                         </div>
                     </td>
                 </tr>
             `).join('');
-        }
-        
-        function updateMessageCount() {
-            const messages = JSON.parse(localStorage.getItem('adminMessages') || '[]');
-            const unreadCount = messages.filter(msg => !msg.resolved).length;
-            document.getElementById('messageCount').textContent = unreadCount;
-        }
-        
-        function replyToMessage(messageId) {
-            alert('Reply functionality would open a reply form here.');
-        }
-        
-        function markAsResolved(messageId) {
-            const messages = JSON.parse(localStorage.getItem('adminMessages') || '[]');
-            const updatedMessages = messages.map(msg => 
-                msg.id === messageId ? { ...msg, resolved: true } : msg
-            );
-            localStorage.setItem('adminMessages', JSON.stringify(updatedMessages));
-            loadSupportMessages();
-            updateMessageCount();
-        }
-        
-        function initializeCharts() {
-            // Account Growth Chart
-            const accountChart = echarts.init(document.getElementById('accountGrowthChart'));
-            const accountOption = {
-                backgroundColor: 'transparent',
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    axisLine: { lineStyle: { color: '#8B96A3' } },
-                    axisLabel: { color: '#8B96A3' }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLine: { lineStyle: { color: '#8B96A3' } },
-                    axisLabel: { color: '#8B96A3' },
-                    splitLine: { lineStyle: { color: '#E5E7EB', type: 'dashed' } }
-                },
-                series: [{
-                    data: [2, 3, 4, 4, 5, 5],
-                    type: 'line',
-                    smooth: true,
-                    lineStyle: { color: '#C89A3A', width: 3 },
-                    itemStyle: { color: '#C89A3A' },
-                    areaStyle: {
-                        color: {
-                            type: 'linear',
-                            x: 0, y: 0, x2: 0, y2: 1,
-                            colorStops: [
-                                { offset: 0, color: 'rgba(200, 154, 58, 0.3)' },
-                                { offset: 1, color: 'rgba(200, 154, 58, 0.05)' }
-                            ]
-                        }
-                    }
-                }]
-            };
-            accountChart.setOption(accountOption);
             
-            // Revenue Chart
-            const revenueChart = echarts.init(document.getElementById('revenueChart'));
-            const revenueOption = {
-                backgroundColor: 'transparent',
-                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    axisLine: { lineStyle: { color: '#8B96A3' } },
-                    axisLabel: { color: '#8B96A3' }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLine: { lineStyle: { color: '#8B96A3' } },
-                    axisLabel: { color: '#8B96A3', formatter: '€{value}K' },
-                    splitLine: { lineStyle: { color: '#E5E7EB', type: 'dashed' } }
-                },
-                series: [{
-                    data: [12, 19, 15, 17, 21, 25],
-                    type: 'bar',
-                    itemStyle: { color: '#C89A3A' },
-                    barWidth: '60%'
-                }]
+            // Update chat user select
+            const select = document.getElementById('chatUserSelect');
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">Select user...</option>' + 
+                users.map(u => `<option value="${u.id}">${u.fullName}</option>`).join('');
+            select.value = currentValue;
+        }
+
+        function startRealtimeUpdates() {
+            // Poll for updates every 2 seconds
+            refreshInterval = setInterval(() => {
+                loadDashboard();
+                loadActivityFeed();
+                if (currentChatUser) {
+                    loadUserChat();
+                }
+            }, 2000);
+        }
+
+        function loadActivityFeed() {
+            const events = VanstraBank.getAdminEvents().slice(0, 10);
+            const feed = document.getElementById('activityFeed');
+            
+            feed.innerHTML = events.map(event => {
+                let iconClass = 'user';
+                let text = '';
+                
+                switch(event.event) {
+                    case 'user_created':
+                        iconClass = 'user';
+                        text = `New user registered: ${event.data.user?.fullName || 'Unknown'}`;
+                        break;
+                    case 'user_login':
+                        iconClass = 'login';
+                        text = `${event.data.user?.fullName || 'User'} logged in`;
+                        break;
+                    case 'user_logout':
+                        iconClass = 'logout';
+                        text = `User logged out`;
+                        break;
+                    case 'transaction':
+                        iconClass = 'transaction';
+                        text = `Transaction: ${event.data.transaction?.description || 'Unknown'}`;
+                        break;
+                    case 'pin_failed':
+                        iconClass = 'pin';
+                        text = `PIN authorization failed`;
+                        break;
+                    default:
+                        text = event.event;
+                }
+                
+                return `
+                    <div class="event-item">
+                        <div class="event-icon ${iconClass}">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                ${getIconForEvent(event.event)}
+                            </svg>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-text">${text}</div>
+                            <div class="event-time">${new Date(event.timestamp).toLocaleTimeString('de-DE')}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getIconForEvent(event) {
+            const icons = {
+                user_created: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>',
+                user_login: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path>',
+                user_logout: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>',
+                transaction: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>',
+                pin_failed: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>'
             };
-            revenueChart.setOption(revenueOption);
+            return icons[event] || icons.user_created;
+        }
+
+        function addActivityEvent(type, text, userId) {
+            // This would add to the feed in real-time
+        }
+
+        // Chat functions
+        function loadUserChat() {
+            const userId = document.getElementById('chatUserSelect').value;
+            if (!userId) {
+                document.getElementById('chatMessages').innerHTML = `
+                    <div style="text-align: center; color: #9CA3AF; padding: 2rem;">
+                        Select a user to view chat
+                    </div>
+                `;
+                return;
+            }
+            
+            currentChatUser = userId;
+            const messages = VanstraBank.getChatMessages(userId);
+            const container = document.getElementById('chatMessages');
+            
+            if (messages.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #9CA3AF; padding: 2rem;">
+                        No messages yet
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = messages.map(msg => `
+                <div class="chat-message ${msg.from}">${msg.message}</div>
+            `).join('');
+            
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter') {
+                sendAdminReply();
+            }
+        }
+
+        function sendAdminReply() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || !currentChatUser) return;
+            
+            VanstraBank.adminReply(currentChatUser, message);
+            addChatMessage(message, 'admin');
+            input.value = '';
+        }
+
+        function addChatMessage(message, from) {
+            const container = document.getElementById('chatMessages');
+            
+            // Remove "no messages" text if present
+            if (container.children.length === 1 && container.children[0].style.textAlign === 'center') {
+                container.innerHTML = '';
+            }
+            
+            const div = document.createElement('div');
+            div.className = 'chat-message ' + from;
+            div.textContent = message;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function showSection(section) {
+            // Simple section switching
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminAuthenticated');
+            window.location.href = 'login.html';
+        }
+
+        function toggleChatMinimize(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const chatPanel = document.getElementById('chatPanel');
+            chatPanel.classList.toggle('minimized');
+        }
+
+        // User Management Functions
+        let currentEditingUserId = null;
+
+        function createMockUsersIfNeeded() {
+            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+            
+            // Only create mock users if the system is empty
+            if (Object.keys(vanstraUsers).length === 0) {
+                const mockUsers = {
+                    'USR-1001': {
+                        id: 'USR-1001',
+                        fullName: 'John Smith',
+                        email: 'john.smith@email.com',
+                        phone: '+49 123 456 7890',
+                        accountNumber: 'DE89370400440532013000',
+                        balance: 15430.50,
+                        accountStatus: 'active',
+                        isOnline: true,
+                        lastLogin: new Date().toISOString(),
+                        createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+                        password: 'hashedPassword123',
+                        pin: 'hashedPIN1234'
+                    },
+                    'USR-1002': {
+                        id: 'USR-1002',
+                        fullName: 'Sarah Johnson',
+                        email: 'sarah.johnson@email.com',
+                        phone: '+49 234 567 8901',
+                        accountNumber: 'DE89370400440532013001',
+                        balance: 28650.75,
+                        accountStatus: 'active',
+                        isOnline: false,
+                        lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+                        password: 'hashedPassword456',
+                        pin: 'hashedPIN5678'
+                    },
+                    'USR-1003': {
+                        id: 'USR-1003',
+                        fullName: 'Michael Brown',
+                        email: 'michael.brown@email.com',
+                        phone: '+49 345 678 9012',
+                        accountNumber: 'DE89370400440532013002',
+                        balance: 42150.00,
+                        accountStatus: 'active',
+                        isOnline: true,
+                        lastLogin: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+                        createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
+                        password: 'hashedPassword789',
+                        pin: 'hashedPIN9012'
+                    },
+                    'USR-1004': {
+                        id: 'USR-1004',
+                        fullName: 'Emma Wilson',
+                        email: 'emma.wilson@email.com',
+                        phone: '+49 456 789 0123',
+                        accountNumber: 'DE89370400440532013003',
+                        balance: 19875.25,
+                        accountStatus: 'active',
+                        isOnline: false,
+                        lastLogin: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+                        createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
+                        password: 'hashedPassword012',
+                        pin: 'hashedPIN3456'
+                    },
+                    'USR-1005': {
+                        id: 'USR-1005',
+                        fullName: 'David Martinez',
+                        email: 'david.martinez@email.com',
+                        phone: '+49 567 890 1234',
+                        accountNumber: 'DE89370400440532013004',
+                        balance: 55320.80,
+                        accountStatus: 'active',
+                        isOnline: true,
+                        lastLogin: new Date().toISOString(),
+                        createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
+                        password: 'hashedPassword345',
+                        pin: 'hashedPIN7890'
+                    }
+                };
+                localStorage.setItem('vanstraUsers', JSON.stringify(mockUsers));
+            }
+        }
+
+        function openEditUserModal(userId, fullName, email, balance) {
+            currentEditingUserId = userId;
+            document.getElementById('modalUserName').value = fullName;
+            document.getElementById('modalUserEmail').value = email;
+            document.getElementById('modalUserBalance').value = balance;
+            document.getElementById('modalUserStatus').value = 'active';
+            document.getElementById('userManagementModal').classList.add('active');
+        }
+
+        function closeEditUserModal() {
+            document.getElementById('userManagementModal').classList.remove('active');
+            currentEditingUserId = null;
+        }
+
+        function saveUserChanges(event) {
+            event.preventDefault();
+            const newBalance = parseFloat(document.getElementById('modalUserBalance').value);
+            const newStatus = document.getElementById('modalUserStatus').value;
+            const userName = document.getElementById('modalUserName').value;
+            
+            // Update directly in vanstraUsers localStorage
+            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+            
+            if (vanstraUsers[currentEditingUserId]) {
+                const oldBalance = vanstraUsers[currentEditingUserId].balance;
+                vanstraUsers[currentEditingUserId].balance = newBalance;
+                vanstraUsers[currentEditingUserId].accountStatus = newStatus;
+                localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
+                
+                // Emit event for real-time updates
+                VanstraBank.emit('account_updated', {
+                    userId: currentEditingUserId,
+                    userName: userName,
+                    oldBalance: oldBalance,
+                    newBalance: newBalance,
+                    status: newStatus
+                });
+                
+                // Show success message
+                alert(`User account updated successfully!\nNew Balance: €${newBalance.toFixed(2)}\nStatus: ${newStatus}`);
+                
+                // Refresh dashboard
+                loadDashboard();
+                closeEditUserModal();
+            } else {
+                alert('User not found in system');
+            }
+        }
+
+        function freezeUserAccount(userId, userName) {
+            if (confirm(`Are you sure you want to FREEZE the account for ${userName}?\n\nThis will prevent them from making any transactions.`)) {
+                updateUserStatus(userId, 'frozen', userName);
+                addActivityEvent('pin', `Account FROZEN for ${userName}`, userId);
+            }
+        }
+
+        function suspendUserAccount(userId, userName) {
+            if (confirm(`Are you sure you want to SUSPEND the account for ${userName}?\n\nThis will temporarily disable their access.`)) {
+                updateUserStatus(userId, 'suspended', userName);
+                addActivityEvent('logout', `Account SUSPENDED for ${userName}`, userId);
+            }
+        }
+
+        function blockUserAccount(userId, userName) {
+            if (confirm(`Are you sure you want to BLOCK the account for ${userName}?\n\nThis action cannot be easily undone. The user will lose access immediately.`)) {
+                updateUserStatus(userId, 'blocked', userName);
+                addActivityEvent('logout', `Account BLOCKED for ${userName}`, userId);
+            }
+        }
+
+        function disableUserAccount(userId, userName) {
+            if (confirm(`Are you sure you want to DISABLE the account for ${userName}?`)) {
+                updateUserStatus(userId, 'disabled', userName);
+                addActivityEvent('logout', `Account DISABLED for ${userName}`, userId);
+            }
+        }
+
+        function updateUserStatus(userId, status, userName) {
+            // Update directly in vanstraUsers localStorage
+            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+            
+            if (vanstraUsers[userId]) {
+                vanstraUsers[userId].accountStatus = status;
+                vanstraUsers[userId].isOnline = false;
+                localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
+                
+                // Emit event for real-time updates on user's device
+                VanstraBank.emit('account_status_changed', {
+                    userId: userId,
+                    userName: userName,
+                    newStatus: status,
+                    timestamp: new Date().toISOString()
+                });
+                
+                loadDashboard();
+                alert(`${userName}'s account has been ${status}.`);
+            } else {
+                alert('User not found in system');
+            }
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('userManagementModal');
+            if (event.target === modal) {
+                closeEditUserModal();
+            }
         }
     </script>
 </body>

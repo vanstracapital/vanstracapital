@@ -134,6 +134,43 @@
             font-weight: 500;
         }
         
+        .account-status {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 0.75rem;
+        }
+        
+        .account-status.active {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        
+        .account-status.frozen {
+            background: #FEE2E2;
+            color: #991B1B;
+            animation: pulse 2s infinite;
+        }
+        
+        .account-status.suspended {
+            background: #FEF3C7;
+            color: #92400E;
+            animation: pulse 2s infinite;
+        }
+        
+        .account-status.blocked {
+            background: #FECACA;
+            color: #7F1D1D;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
         /* Quick Actions */
         .quick-actions {
             display: grid;
@@ -158,6 +195,23 @@
         
         .quick-action:active {
             transform: scale(0.95);
+        }
+        
+        .quick-action.restricted {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .quick-action.restricted::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
         }
         
         .quick-action-icon {
@@ -771,6 +825,10 @@
             <span class="account-number" id="accountNumber">----</span>
             <span class="account-type" id="accountType">Premium</span>
         </div>
+        
+        <div id="accountStatusDisplay">
+            <span class="account-status active" id="accountStatusBadge">✓ Active Account</span>
+        </div>
     </section>
 
     <!-- Quick Actions -->
@@ -1216,8 +1274,10 @@
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadUserData();
+            checkAccountStatus();
             renderTransactions();
             loadChatMessages();
+            monitorAccountStatus();
             
             // Listen for admin events
             VanstraBank.on('admin_reply', function(msg) {
@@ -1248,6 +1308,111 @@
                 document.getElementById('userAvatarImg').style.display = 'block';
                 document.getElementById('userInitials').style.display = 'none';
             }
+        }
+
+        function checkAccountStatus() {
+            const status = currentUser?.accountStatus || 'active';
+            const badge = document.getElementById('accountStatusBadge');
+            
+            if (!badge) return;
+            
+            // Update badge display and styling
+            badge.className = 'account-status ' + status;
+            
+            switch(status) {
+                case 'frozen':
+                    badge.textContent = '❄️ Account Frozen';
+                    applyRestrictions();
+                    break;
+                case 'suspended':
+                    badge.textContent = '⏸️ Account Suspended';
+                    applyRestrictions();
+                    break;
+                case 'blocked':
+                    badge.textContent = '🚫 Account Blocked';
+                    applyRestrictions();
+                    break;
+                case 'disabled':
+                    badge.textContent = '⚠️ Account Disabled';
+                    applyRestrictions();
+                    break;
+                default:
+                    badge.textContent = '✓ Active Account';
+                    removeRestrictions();
+            }
+        }
+
+        function applyRestrictions() {
+            // Disable all quick action buttons
+            document.querySelectorAll('.quick-action').forEach(btn => {
+                btn.classList.add('restricted');
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.5';
+                btn.title = 'Your account is restricted';
+            });
+            
+            // Override onclick handlers
+            document.querySelectorAll('.quick-action').forEach(btn => {
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showRestrictionAlert();
+                    return false;
+                };
+            });
+        }
+
+        function removeRestrictions() {
+            document.querySelectorAll('.quick-action').forEach(btn => {
+                btn.classList.remove('restricted');
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+                btn.title = '';
+            });
+        }
+
+        function showRestrictionAlert() {
+            const status = currentUser?.accountStatus || 'active';
+            let message = 'Your account is currently restricted.';
+            
+            switch(status) {
+                case 'frozen':
+                    message = 'Your account has been FROZEN. No transactions are allowed. Contact support for assistance.';
+                    break;
+                case 'suspended':
+                    message = 'Your account has been SUSPENDED. Please contact customer support.';
+                    break;
+                case 'blocked':
+                    message = 'Your account has been BLOCKED. Contact support immediately.';
+                    break;
+                case 'disabled':
+                    message = 'Your account is currently DISABLED. Please contact support.';
+                    break;
+            }
+            
+            alert(message);
+        }
+
+        function monitorAccountStatus() {
+            // Check every 3 seconds for account status changes
+            setInterval(() => {
+                const user = VanstraBank.getCurrentUser();
+                if (user && user.accountStatus !== (currentUser?.accountStatus || 'active')) {
+                    currentUser = user;
+                    checkAccountStatus();
+                }
+            }, 3000);
+            
+            // Also listen to storage changes
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'vanstraUsers') {
+                    const user = VanstraBank.getCurrentUser();
+                    if (user) {
+                        currentUser = user;
+                        checkAccountStatus();
+                    }
+                }
+            });
         }
 
         function renderTransactions() {
@@ -1308,7 +1473,15 @@
         }
 
         // Transfer
+        function isAccountActive() {
+            return (currentUser?.accountStatus || 'active') === 'active';
+        }
+
         function openTransferModal() {
+            if (!isAccountActive()) {
+                showRestrictionAlert();
+                return;
+            }
             document.getElementById('transferForm').reset();
             toggleTransferFields();
             openModal('transferModal');
@@ -1438,6 +1611,10 @@
 
         // Deposit
         function openDepositModal() {
+            if (!isAccountActive()) {
+                showRestrictionAlert();
+                return;
+            }
             document.getElementById('depositForm').reset();
             depositImages = { front: null, back: null };
             document.getElementById('frontFileName').classList.add('hidden');
@@ -1492,6 +1669,10 @@
 
         // Pay Bill
         function openPayBillModal() {
+            if (!isAccountActive()) {
+                showRestrictionAlert();
+                return;
+            }
             document.getElementById('payBillForm').reset();
             openModal('payBillModal');
         }
@@ -1525,6 +1706,10 @@
 
         // Support
         function openSupportModal() {
+            if (!isAccountActive()) {
+                showRestrictionAlert();
+                return;
+            }
             document.getElementById('supportForm').reset();
             openModal('supportModal');
         }

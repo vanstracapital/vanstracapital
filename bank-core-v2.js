@@ -475,6 +475,7 @@ const VanstraBank = (function() {
             accountNumber: user.accountNumber,
             balance: user.balance,
             status: user.status,
+            accountStatus: user.accountStatus || 'active',
             isOnline: user.isOnline,
             lastLogin: user.lastLogin,
             createdAt: user.createdAt,
