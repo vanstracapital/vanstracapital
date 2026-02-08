@@ -421,7 +421,10 @@ const VanstraBank = (function() {
     // ==================== ADMIN FUNCTIONS ====================
 
     function getAllUsers() {
-        const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+        const usersData = localStorage.getItem('vanstraUsers');
+        if (!usersData) return [];
+        const users = JSON.parse(usersData);
+        if (!users || Object.keys(users).length === 0) return [];
         return Object.values(users).map(sanitizeForAdmin);
     }
 
