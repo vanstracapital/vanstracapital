@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Vanstra Capital</title>
+    <meta name="description" content="Access your Vanstra Capital dashboard. View balances, manage transactions, and control your financial future.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    
+    <!-- Custom Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --midnight-navy: #041225;
+            --deep-slate: #0B2A3F;
+            --gold-accent: #C89A3A;
+            --soft-white: #F7F8FA;
+            --gray: #8B96A3;
+        }
+        
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F9FA;
+            color: var(--midnight-navy);
+            margin: 0;
+            padding: 0;
+        }
+        
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        
+        .gold-accent { color: var(--gold-accent); }
+        .bg-gold { background-color: var(--gold-accent); }
+        .text-navy { color: var(--midnight-navy); }
+        .bg-navy { background-color: var(--midnight-navy); }
+        
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, var(--midnight-navy) 0%, var(--deep-slate) 100%);
+            color: white;
+        }
+        
+        .quick-action-btn {
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quick-action-btn:hover {
+            border-color: var(--gold-accent);
+            background-color: rgba(200, 154, 58, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .quick-action-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        
+        .transaction-row {
+            padding: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+            transition: background-color 0.2s ease;
+        }
+        
+        .transaction-row:hover {
+            background-color: #F9FAFB;
+        }
+        
+        .transaction-row:last-child {
+            border-bottom: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--gold-accent);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(200, 154, 58, 0.3);
+        }
+        
+        .btn-secondary {
+            border: 2px solid var(--gold-accent);
+            color: var(--gold-accent);
+            background: transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--gold-accent);
+            color: white;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .modal-overlay.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold-accent);
+            box-shadow: 0 0 0 3px rgba(200, 154, 58, 0.1);
+        }
+        
+        .form-input.error {
+            border-color: #EF4444;
+        }
+        
+        .error-message {
+            color: #EF4444;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .tab-btn.active {
+            color: var(--gold-accent);
+            border-bottom-color: var(--gold-accent);
+        }
+        
+        .tab-btn:hover:not(.active) {
+            color: var(--gold-accent);
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #D1D5DB;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area:hover {
+            border-color: var(--gold-accent);
+            background-color: rgba(200, 154, 58, 0.05);
+        }
+        
+        .file-upload-area.has-file {
+            border-color: #10B981;
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            z-index: 200;
+            animation: toastSlideIn 0.3s ease;
+            max-width: 400px;
+        }
+        
+        .toast.success { background-color: #10B981; }
+        .toast.error { background-color: #EF4444; }
+        .toast.info { background-color: #3B82F6; }
+        
+        @keyframes toastSlideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .receipt {
+            background: linear-gradient(135deg, #F9FAFB 0%, #FFFFFF 100%);
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+        
+        .receipt::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: #F8F9FA;
+            border-radius: 50%;
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .status-completed { background: #D1FAE5; color: #065F46; }
+        .status-pending { background: #FEF3C7; color: #92400E; }
+        .status-failed { background: #FEE2E2; color: #991B1B; }
+        
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--gold-accent);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            color: #6B7280;
+        }
+        
+        .sidebar-link:hover, .sidebar-link.active {
+            background-color: rgba(200, 154, 58, 0.1);
+            color: var(--gold-accent);
+        }
+        
+        .sidebar-link svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 right-0 z-50 bg-navy/95 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <img src="resources/logo-primary.svg" alt="Vanstra Capital" class="h-10 w-auto">
+                    <span class="ml-3 text-xl font-serif font-bold text-white">Vanstra Capital</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-white hover:text-gold-accent">Home</a>
+                    <a href="products.html" class="nav-link text-white hover:text-gold-accent">Products</a>
+                    <a href="about.html" class="nav-link text-white hover:text-gold-accent">About</a>
+                    <a href="#" onclick="openSupportModal()" class="nav-link text-white hover:text-gold-accent">Support</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="text-right hidden sm:block">
+                        <div class="text-sm text-gray-400">Welcome back</div>
+                        <div class="text-white font-medium" id="userName">Alexander Mitchell</div>
+                    </div>
+                    <div class="w-10 h-10 bg-gold rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold">AM</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="pt-20 pb-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Account Overview -->
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <!-- Main Balance -->
+                <div class="lg:col-span-2 balance-card rounded-2xl p-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm mb-1">Total Balance</p>
+                            <h2 class="text-4xl font-bold" id="totalBalance">€127,543.82</h2>
+                        </div>
+                        <div class="text-right">
+                            <span class="status-badge status-completed">Active</span>
+                            <p class="text-gray-400 text-sm mt-2">Account ****4567</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10">
+                        <div>
+                            <p class="text-gray-400 text-sm">Checking</p>
+                            <p class="text-xl font-semibold" id="checkingBalance">€127,543.82</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Savings</p>
+                            <p class="text-xl font-semibold" id="savingsBalance">€45,230.15</p>
+                            <p class="text-xs text-green-400">+4.85% APY</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-400 text-sm">Investments</p>
+                            <p class="text-xl font-semibold" id="investmentBalance">€69,466.00</p>
+                            <p class="text-xs text-green-400">+€7,654 YTD</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="dashboard-card p-6">
+                    <h3 class="text-lg font-semibold text-navy mb-4">Quick Actions</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="openTransferModal()" class="quick-action-btn">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Transfer</span>
+                        </button>
+                        
+                        <button onclick="openDepositModal()" class="quick-action-btn">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Deposit</span>
+                        </button>
+                        
+                        <button onclick="openPayBillsModal()" class="quick-action-btn">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Pay Bills</span>
+                        </button>
+                        
+                        <button onclick="openSupportModal()" class="quick-action-btn">
+                            <svg class="w-8 h-8 mx-auto mb-2 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <span class="text-sm font-medium">Support</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Dashboard Grid -->
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Transaction History -->
+                <div class="lg:col-span-2 dashboard-card p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-semibold text-navy">Recent Transactions</h3>
+                        <div class="flex space-x-2">
+                            <button onclick="filterTransactions('all')" class="px-3 py-1 text-sm rounded-full bg-gold-accent text-white">All</button>
+                            <button onclick="filterTransactions('credit')" class="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300">Income</button>
+                            <button onclick="filterTransactions('debit')" class="px-3 py-1 text-sm rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300">Expenses</button>
+                        </div>
+                    </div>
+                    
+                    <div id="transactionList" class="space-y-0">
+                        <!-- Transactions will be populated by JavaScript -->
+                    </div>
+                    
+                    <button onclick="loadMoreTransactions()" class="w-full mt-4 py-3 text-gold-accent font-medium hover:bg-gold-accent/5 rounded-lg transition-colors">
+                        Load More Transactions
+                    </button>
+                </div>
+                
+                <!-- Side Panel -->
+                <div class="space-y-6">
+                    <!-- Pending Deposits -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-semibold text-navy mb-4">Pending Deposits</h3>
+                        <div id="pendingDepositsList">
+                            <!-- Pending deposits will be populated -->
+                        </div>
+                        <p class="text-xs text-gray-500 mt-4">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Deposits may take 1-2 business days to clear
+                        </p>
+                    </div>
+                    
+                    <!-- Spending Overview -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-semibold text-navy mb-4">Spending Overview</h3>
+                        <div id="spendingChart" style="height: 200px;"></div>
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="dashboard-card p-6">
+                        <h3 class="text-lg font-semibold text-navy mb-4">This Month</h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Money In</span>
+                                <span class="font-semibold text-green-600">+€5,424.23</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600">Money Out</span>
+                                <span class="font-semibold text-red-600">-€1,327.45</span>
+                            </div>
+                            <div class="border-t pt-3 flex justify-between items-center">
+                                <span class="font-medium">Net Change</span>
+                                <span class="font-bold text-navy">+€4,096.78</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== MODALS ==================== -->
+
+    <!-- Transfer Money Modal -->
+    <div id="transferModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-serif font-bold text-navy">Transfer Money</h2>
+                    <button onclick="closeModal('transferModal')" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Transfer Type Tabs -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button onclick="setTransferType('internal')" id="tab-internal" class="tab-btn active flex-1 text-center">Internal Transfer</button>
+                    <button onclick="setTransferType('external')" id="tab-external" class="tab-btn flex-1 text-center">External Transfer</button>
+                </div>
+                
+                <form id="transferForm" onsubmit="handleTransfer(event)">
+                    <!-- Internal Transfer Options -->
+                    <div id="internalOptions" class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">From Account</label>
+                        <select id="fromAccount" class="form-input mb-4" onchange="updateFromAccount()">
+                            <option value="checking">Checking Account - €127,543.82</option>
+                            <option value="savings">Savings Account - €45,230.15</option>
+                        </select>
+                        
+                        <label class="block text-sm font-medium text-gray-700 mb-2">To Account</label>
+                        <select id="toAccountInternal" class="form-input">
+                            <option value="savings">Savings Account</option>
+                            <option value="investment">Investment Account</option>
+                        </select>
+                    </div>
+                    
+                    <!-- External Transfer Options -->
+                    <div id="externalOptions" class="mb-4 hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Recipient Name *</label>
+                        <input type="text" id="recipientName" class="form-input mb-4" placeholder="Enter full name">
+                        
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
+                        <input type="text" id="recipientBank" class="form-input mb-4" placeholder="e.g., Deutsche Bank">
+                        
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Account/IBAN Number *</label>
+                        <input type="text" id="recipientAccount" class="form-input mb-4" placeholder="DE89 3704 0044 0532 0130 00">
+                    </div>
+                    
+                    <!-- Common Fields -->
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">€</span>
+                            <input type="number" id="transferAmount" class="form-input pl-8" placeholder="0.00" step="0.01" min="0.01" oninput="validateTransferAmount()">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Available: <span id="availableBalance">€127,543.82</span></p>
+                        <p id="amountError" class="error-message hidden">Amount exceeds available balance</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description (Optional)</label>
+                        <input type="text" id="transferDescription" class="form-input" placeholder="What's this transfer for?">
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeModal('transferModal')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="transferSubmitBtn" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Review Transfer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transfer Confirmation Modal -->
+    <div id="transferConfirmModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-navy mb-2">Confirm Transfer</h3>
+                <p class="text-gray-600 mb-6">Please review the details before confirming</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Amount:</span>
+                        <span class="font-semibold" id="confirmAmount">€0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">To:</span>
+                        <span class="font-semibold" id="confirmRecipient">-</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">From:</span>
+                        <span class="font-semibold" id="confirmFrom">Checking Account</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Description:</span>
+                        <span class="font-semibold" id="confirmDescription">-</span>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="closeModal('transferConfirmModal'); openModal('transferModal')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Back</button>
+                    <button onclick="confirmTransfer()" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Confirm Transfer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Deposit Modal -->
+    <div id="depositModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-serif font-bold text-navy">Mobile Deposit</h2>
+                    <button onclick="closeModal('depositModal')" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div>
+                            <p class="text-blue-900 font-medium">Important Notice</p>
+                            <p class="text-blue-800 text-sm">Deposits are subject to verification and may take 1-2 business days to clear. Maximum deposit: €10,000 per check.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <form id="depositForm" onsubmit="handleDeposit(event)">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Deposit Amount *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">€</span>
+                            <input type="number" id="depositAmount" class="form-input pl-8" placeholder="0.00" step="0.01" min="0.01" max="10000" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Front of Check *</label>
+                        <div class="file-upload-area" id="frontUploadArea" onclick="document.getElementById('frontCheckImage').click()">
+                            <input type="file" id="frontCheckImage" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'front')">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-gray-600">Click to upload front of check</p>
+                            <p class="text-sm text-gray-400 mt-1">JPG, PNG up to 5MB</p>
+                        </div>
+                        <p id="frontFileName" class="text-sm text-green-600 mt-2 hidden"></p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Back of Check *</label>
+                        <div class="file-upload-area" id="backUploadArea" onclick="document.getElementById('backCheckImage').click()">
+                            <input type="file" id="backCheckImage" accept="image/*" class="hidden" onchange="handleFileSelect(this, 'back')">
+                            <svg class="w-12 h-12 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-gray-600">Click to upload back of check</p>
+                            <p class="text-sm text-gray-400 mt-1">JPG, PNG up to 5MB</p>
+                        </div>
+                        <p id="backFileName" class="text-sm text-green-600 mt-2 hidden"></p>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeModal('depositModal')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="depositSubmitBtn" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Submit Deposit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pay Bills Modal -->
+    <div id="payBillsModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-serif font-bold text-navy">Pay Bills</h2>
+                    <button onclick="closeModal('payBillsModal')" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <form id="payBillForm" onsubmit="handlePayBill(event)">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Bill Category *</label>
+                        <select id="billCategory" class="form-input" onchange="updateBillerList()">
+                            <option value="">Select category</option>
+                            <option value="Electricity">Electricity</option>
+                            <option value="Internet">Internet</option>
+                            <option value="Cable">Cable/TV</option>
+                            <option value="Water">Water</option>
+                            <option value="Phone">Phone</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Biller *</label>
+                        <select id="billerSelect" class="form-input mb-2">
+                            <option value="">Select biller</option>
+                        </select>
+                        <button type="button" onclick="showAddBillerForm()" class="text-sm text-gold-accent hover:underline">+ Add new biller</button>
+                    </div>
+                    
+                    <!-- Add New Biller Form (hidden by default) -->
+                    <div id="addBillerForm" class="hidden bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-medium mb-3">Add New Biller</h4>
+                        <input type="text" id="newBillerName" class="form-input mb-2" placeholder="Biller name">
+                        <input type="text" id="newBillerAccount" class="form-input mb-2" placeholder="Account/Customer number">
+                        <div class="flex space-x-2">
+                            <button type="button" onclick="hideAddBillerForm()" class="px-3 py-1 text-sm border border-gray-300 rounded">Cancel</button>
+                            <button type="button" onclick="addNewBiller()" class="px-3 py-1 text-sm bg-gold-accent text-white rounded">Add Biller</button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Customer/Reference Number *</label>
+                        <input type="text" id="customerReference" class="form-input" placeholder="Enter your account number with this biller">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Payment Amount *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">€</span>
+                            <input type="number" id="billAmount" class="form-input pl-8" placeholder="0.00" step="0.01" min="0.01" oninput="validateBillAmount()">
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Available: <span id="billAvailableBalance">€127,543.82</span></p>
+                        <p id="billAmountError" class="error-message hidden">Amount exceeds available balance</p>
+                    </div>
+                    
+                    <div class="flex space-x-3">
+                        <button type="button" onclick="closeModal('payBillsModal')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Cancel</button>
+                        <button type="submit" id="payBillSubmitBtn" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Review Payment</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bill Payment Confirmation Modal -->
+    <div id="billConfirmModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-navy mb-2">Confirm Payment</h3>
+                <p class="text-gray-600 mb-6">Please review before confirming</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mb-6 text-left">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Amount:</span>
+                        <span class="font-semibold" id="confirmBillAmount">€0.00</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Biller:</span>
+                        <span class="font-semibold" id="confirmBillerName">-</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-600">Category:</span>
+                        <span class="font-semibold" id="confirmBillCategory">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Reference:</span>
+                        <span class="font-semibold" id="confirmBillReference">-</span>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="closeModal('billConfirmModal'); openModal('payBillsModal')" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">Back</button>
+                    <button onclick="confirmBillPayment()" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Confirm Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Receipt Modal -->
+    <div id="receiptModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-navy mb-2">Payment Successful!</h3>
+                <p class="text-gray-600 mb-6">Your payment has been processed</p>
+                
+                <div class="receipt relative mb-6 text-left">
+                    <div class="text-center mb-4">
+                        <p class="text-2xl font-bold text-navy" id="receiptAmount">€0.00</p>
+                        <p class="text-sm text-gray-500">Amount Paid</p>
+                    </div>
+                    
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Transaction ID:</span>
+                            <span class="font-mono" id="receiptTransactionId">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Date:</span>
+                            <span id="receiptDate">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Biller:</span>
+                            <span id="receiptBiller">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Reference:</span>
+                            <span id="receiptReference">-</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Status:</span>
+                            <span class="status-badge status-completed">Completed</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="closeModal('receiptModal'); downloadReceipt()" class="flex-1 px-4 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50">
+                        <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                        </svg>
+                        Download
+                    </button>
+                    <button onclick="closeModal('receiptModal')" class="flex-1 px-4 py-3 btn-primary rounded-lg font-medium">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support Modal -->
+    <div id="supportModal" class="modal-overlay">
+        <div class="modal-content max-w-2xl">
+            <div class="p-6 border-b border-gray-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-2xl font-serif font-bold text-navy">Help & Support</h2>
+                    <button onclick="closeModal('supportModal')" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <!-- Support Tabs -->
+                <div class="flex border-b border-gray-200 mb-6">
+                    <button onclick="setSupportTab('faq')" id="support-tab-faq" class="tab-btn active flex-1 text-center">FAQ</button>
+                    <button onclick="setSupportTab('ticket')" id="support-tab-ticket" class="tab-btn flex-1 text-center">Submit Ticket</button>
+                    <button onclick="setSupportTab('tickets')" id="support-tab-tickets" class="tab-btn flex-1 text-center">My Tickets</button>
+                </div>
+                
+                <!-- FAQ Section -->
+                <div id="faqSection">
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100">
+                                <span class="font-medium">How do I transfer money to another bank?</span>
+                                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="hidden px-4 py-3 text-gray-600">
+                                To transfer money to another bank, click on "Transfer" in the Quick Actions, select "External Transfer", and enter the recipient's bank details including their IBAN. Review and confirm the transfer.
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100">
+                                <span class="font-medium">How long do mobile deposits take to clear?</span>
+                                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="hidden px-4 py-3 text-gray-600">
+                                Mobile deposits are typically processed within 1-2 business days. You'll receive a notification once the deposit has been cleared and the funds are available in your account.
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100">
+                                <span class="font-medium">What are the transfer limits?</span>
+                                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="hidden px-4 py-3 text-gray-600">
+                                Internal transfers between your Vanstra accounts have no limits. External transfers are limited to €50,000 per day and €250,000 per month for security purposes.
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100">
+                                <span class="font-medium">How do I reset my password?</span>
+                                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="hidden px-4 py-3 text-gray-600">
+                                Click on "Forgot Password" on the login page. Enter your registered email address, and we'll send you a secure link to reset your password. The link expires in 24 hours.
+                            </div>
+                        </div>
+                        
+                        <div class="border border-gray-200 rounded-lg overflow-hidden">
+                            <button onclick="toggleFaq(this)" class="w-full px-4 py-3 text-left flex items-center justify-between bg-gray-50 hover:bg-gray-100">
+                                <span class="font-medium">Is my money insured?</span>
+                                <svg class="w-5 h-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="hidden px-4 py-3 text-gray-600">
+                                Yes, all deposits at Vanstra Capital are insured up to €250,000 per depositor through the German Deposit Protection Fund (Einlagensicherungsfonds).
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center">
+                            <svg class="w-8 h-8 text-gold-accent mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                            </svg>
+                            <div>
+                                <p class="font-medium">Need more help?</p>
+                                <p class="text-sm text-gray-600">Submit a support ticket and we'll get back to you within 24 hours.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Ticket Section -->
+                <div id="ticketSection" class="hidden">
+                    <form id="supportTicketForm" onsubmit="handleSupportTicket(event)">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
+                            <input type="text" id="ticketSubject" class="form-input" placeholder="Brief description of your issue" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                            <select id="ticketCategory" class="form-input" required>
+                                <option value="">Select category</option>
+                                <option value="Account">Account Issues</option>
+                                <option value="Transfers">Transfers & Payments</option>
+                                <option value="Cards">Cards</option>
+                                <option value="Technical">Technical Support</option>
+                                <option value="Security">Security</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Priority</label>
+                            <select id="ticketPriority" class="form-input">
+                                <option value="low">Low - General inquiry</option>
+                                <option value="medium" selected>Medium - Need assistance</option>
+                                <option value="high">High - Urgent issue</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Message *</label>
+                            <textarea id="ticketMessage" class="form-input" rows="5" placeholder="Please describe your issue in detail..." required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="w-full px-4 py-3 btn-primary rounded-lg font-medium">Submit Ticket</button>
+                    </form>
+                </div>
+                
+                <!-- My Tickets Section -->
+                <div id="ticketsSection" class="hidden">
+                    <div id="ticketsList" class="space-y-4">
+                        <!-- Tickets will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ticket Success Modal -->
+    <div id="ticketSuccessModal" class="modal-overlay">
+        <div class="modal-content max-w-md">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-semibold text-navy mb-2">Ticket Submitted!</h3>
+                <p class="text-gray-600 mb-4">Your support ticket has been created successfully.</p>
+                
+                <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <p class="text-sm text-gray-600">Ticket ID:</p>
+                    <p class="text-lg font-mono font-semibold text-navy" id="ticketIdDisplay">-</p>
+                </div>
+                
+                <p class="text-sm text-gray-500 mb-6">We'll respond to your inquiry within 24 hours.</p>
+                
+                <button onclick="closeModal('ticketSuccessModal'); setSupportTab('tickets')" class="w-full px-4 py-3 btn-primary rounded-lg font-medium">View My Tickets</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Core Scripts -->
+    <script src="banking-core.js"></script>
+    <script>
+        // ==================== INITIALIZATION ====================
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+            renderTransactions();
+            renderPendingDeposits();
+            renderTickets();
+            initializeSpendingChart();
+            updateBalanceDisplay();
+        });
+        
+        function initializeDashboard() {
+            // Load user data
+            const state = BankingSystem.getState();
+            document.getElementById('userName').textContent = state.user.firstName + ' ' + state.user.lastName;
+        }
+        
+        function updateBalanceDisplay() {
+            const state = BankingSystem.getState();
+            document.getElementById('totalBalance').textContent = BankingSystem.formatCurrency(
+                state.account.balance + state.savings.balance + state.investments.balance
+            );
+            document.getElementById('checkingBalance').textContent = BankingSystem.formatCurrency(state.account.balance);
+            document.getElementById('savingsBalance').textContent = BankingSystem.formatCurrency(state.savings.balance);
+            document.getElementById('investmentBalance').textContent = BankingSystem.formatCurrency(state.investments.balance);
+            document.getElementById('availableBalance').textContent = BankingSystem.formatCurrency(state.account.balance);
+            document.getElementById('billAvailableBalance').textContent = BankingSystem.formatCurrency(state.account.balance);
+        }
+        
+        // ==================== MODAL FUNCTIONS ====================
+        
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        
+        function openTransferModal() {
+            resetTransferForm();
+            openModal('transferModal');
+        }
+        
+        function openDepositModal() {
+            resetDepositForm();
+            openModal('depositModal');
+        }
+        
+        function openPayBillsModal() {
+            resetBillForm();
+            openModal('payBillsModal');
+        }
+        
+        function openSupportModal() {
+            setSupportTab('faq');
+            openModal('supportModal');
+        }
+        
+        // Close modal on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+        
+        // ==================== TRANSFER MONEY ====================
+        
+        let currentTransferType = 'internal';
+        let transferData = {};
+        
+        function setTransferType(type) {
+            currentTransferType = type;
+            
+            // Update tabs
+            document.querySelectorAll('#transferModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('tab-' + type).classList.add('active');
+            
+            // Show/hide appropriate fields
+            if (type === 'internal') {
+                document.getElementById('internalOptions').classList.remove('hidden');
+                document.getElementById('externalOptions').classList.add('hidden');
+            } else {
+                document.getElementById('internalOptions').classList.add('hidden');
+                document.getElementById('externalOptions').classList.remove('hidden');
+            }
+        }
+        
+        function updateFromAccount() {
+            const fromAccount = document.getElementById('fromAccount').value;
+            const state = BankingSystem.getState();
+            const balance = fromAccount === 'checking' ? state.account.balance : state.savings.balance;
+            document.getElementById('availableBalance').textContent = BankingSystem.formatCurrency(balance);
+            validateTransferAmount();
+        }
+        
+        function validateTransferAmount() {
+            const amount = parseFloat(document.getElementById('transferAmount').value) || 0;
+            const fromAccount = document.getElementById('fromAccount').value;
+            const state = BankingSystem.getState();
+            const available = fromAccount === 'checking' ? state.account.balance : state.savings.balance;
+            
+            const errorEl = document.getElementById('amountError');
+            const submitBtn = document.getElementById('transferSubmitBtn');
+            
+            if (amount > available) {
+                errorEl.classList.remove('hidden');
+                document.getElementById('transferAmount').classList.add('error');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                errorEl.classList.add('hidden');
+                document.getElementById('transferAmount').classList.remove('error');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        function handleTransfer(event) {
+            event.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('transferAmount').value);
+            const description = document.getElementById('transferDescription').value;
+            
+            if (currentTransferType === 'internal') {
+                const fromAccount = document.getElementById('fromAccount').value;
+                const toAccount = document.getElementById('toAccountInternal').value;
+                
+                transferData = {
+                    type: 'internal',
+                    amount: amount,
+                    fromAccount: fromAccount,
+                    toAccount: toAccount,
+                    recipientName: toAccount === 'savings' ? 'Savings Account' : 'Investment Account',
+                    recipientBank: 'Vanstra Capital',
+                    recipientAccount: toAccount,
+                    description: description
+                };
+                
+                document.getElementById('confirmRecipient').textContent = transferData.recipientName;
+            } else {
+                const recipientName = document.getElementById('recipientName').value;
+                const recipientBank = document.getElementById('recipientBank').value;
+                const recipientAccount = document.getElementById('recipientAccount').value;
+                
+                transferData = {
+                    type: 'external',
+                    amount: amount,
+                    recipientName: recipientName,
+                    recipientBank: recipientBank,
+                    recipientAccount: recipientAccount,
+                    description: description
+                };
+                
+                document.getElementById('confirmRecipient').textContent = recipientName;
+            }
+            
+            document.getElementById('confirmAmount').textContent = BankingSystem.formatCurrency(amount);
+            document.getElementById('confirmFrom').textContent = document.getElementById('fromAccount').options[document.getElementById('fromAccount').selectedIndex].text.split(' - ')[0];
+            document.getElementById('confirmDescription').textContent = description || '-';
+            
+            closeModal('transferModal');
+            openModal('transferConfirmModal');
+        }
+        
+        function confirmTransfer() {
+            const result = BankingSystem.transferMoney({
+                transferType: currentTransferType,
+                amount: transferData.amount,
+                recipientName: transferData.recipientName,
+                recipientBank: transferData.recipientBank,
+                recipientAccount: transferData.recipientAccount,
+                description: transferData.description
+            });
+            
+            if (result.success) {
+                closeModal('transferConfirmModal');
+                showToast('Transfer completed successfully!', 'success');
+                updateBalanceDisplay();
+                renderTransactions();
+            } else {
+                showToast(result.error, 'error');
+            }
+        }
+        
+        function resetTransferForm() {
+            document.getElementById('transferForm').reset();
+            setTransferType('internal');
+            document.getElementById('amountError').classList.add('hidden');
+            document.getElementById('transferAmount').classList.remove('error');
+        }
+        
+        // ==================== MOBILE DEPOSIT ====================
+        
+        let depositImages = { front: null, back: null };
+        
+        function handleFileSelect(input, side) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                showToast('Please upload an image file', 'error');
+                return;
+            }
+            
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('File size must be less than 5MB', 'error');
+                return;
+            }
+            
+            // Store file
+            depositImages[side] = file;
+            
+            // Update UI
+            const uploadArea = document.getElementById(side + 'UploadArea');
+            const fileNameEl = document.getElementById(side + 'FileName');
+            
+            uploadArea.classList.add('has-file');
+            fileNameEl.textContent = '✓ ' + file.name;
+            fileNameEl.classList.remove('hidden');
+        }
+        
+        function handleDeposit(event) {
+            event.preventDefault();
+            
+            const amount = parseFloat(document.getElementById('depositAmount').value);
+            
+            if (!depositImages.front || !depositImages.back) {
+                showToast('Please upload both sides of the check', 'error');
+                return;
+            }
+            
+            // Simulate file upload (in real app, would upload to server)
+            const result = BankingSystem.submitDeposit({
+                amount: amount,
+                frontImage: depositImages.front.name,
+                backImage: depositImages.back.name
+            });
+            
+            if (result.success) {
+                closeModal('depositModal');
+                showToast('Deposit submitted for processing', 'success');
+                renderPendingDeposits();
+                renderTransactions();
+            }
+        }
+        
+        function resetDepositForm() {
+            document.getElementById('depositForm').reset();
+            depositImages = { front: null, back: null };
+            document.getElementById('frontUploadArea').classList.remove('has-file');
+            document.getElementById('backUploadArea').classList.remove('has-file');
+            document.getElementById('frontFileName').classList.add('hidden');
+            document.getElementById('backFileName').classList.add('hidden');
+        }
+        
+        // ==================== PAY BILLS ====================
+        
+        let currentBillData = {};
+        
+        function updateBillerList() {
+            const category = document.getElementById('billCategory').value;
+            const billerSelect = document.getElementById('billerSelect');
+            const billers = BankingSystem.getBillers();
+            
+            // Clear existing options
+            billerSelect.innerHTML = '<option value="">Select biller</option>';
+            
+            // Filter billers by category
+            const filteredBillers = billers.filter(b => b.category === category);
+            
+            filteredBillers.forEach(biller => {
+                const option = document.createElement('option');
+                option.value = biller.id;
+                option.textContent = biller.name;
+                billerSelect.appendChild(option);
+            });
+        }
+        
+        function showAddBillerForm() {
+            document.getElementById('addBillerForm').classList.remove('hidden');
+        }
+        
+        function hideAddBillerForm() {
+            document.getElementById('addBillerForm').classList.add('hidden');
+            document.getElementById('newBillerName').value = '';
+            document.getElementById('newBillerAccount').value = '';
+        }
+        
+        function addNewBiller() {
+            const name = document.getElementById('newBillerName').value;
+            const account = document.getElementById('newBillerAccount').value;
+            const category = document.getElementById('billCategory').value;
+            
+            if (!name || !account) {
+                showToast('Please fill in all fields', 'error');
+                return;
+            }
+            
+            const result = BankingSystem.addBiller({
+                name: name,
+                category: category || 'Other',
+                accountNumber: account
+            });
+            
+            if (result.success) {
+                updateBillerList();
+                document.getElementById('billerSelect').value = result.biller.id;
+                hideAddBillerForm();
+                showToast('Biller added successfully', 'success');
+            }
+        }
+        
+        function validateBillAmount() {
+            const amount = parseFloat(document.getElementById('billAmount').value) || 0;
+            const state = BankingSystem.getState();
+            
+            const errorEl = document.getElementById('billAmountError');
+            const submitBtn = document.getElementById('payBillSubmitBtn');
+            
+            if (amount > state.account.balance) {
+                errorEl.classList.remove('hidden');
+                document.getElementById('billAmount').classList.add('error');
+                submitBtn.disabled = true;
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                errorEl.classList.add('hidden');
+                document.getElementById('billAmount').classList.remove('error');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
+        
+        function handlePayBill(event) {
+            event.preventDefault();
+            
+            const billerId = document.getElementById('billerSelect').value;
+            const billers = BankingSystem.getBillers();
+            const biller = billers.find(b => b.id == billerId);
+            
+            if (!biller) {
+                showToast('Please select a biller', 'error');
+                return;
+            }
+            
+            currentBillData = {
+                billerId: billerId,
+                billerName: biller.name,
+                category: document.getElementById('billCategory').value,
+                referenceNumber: document.getElementById('customerReference').value,
+                amount: parseFloat(document.getElementById('billAmount').value)
+            };
+            
+            document.getElementById('confirmBillAmount').textContent = BankingSystem.formatCurrency(currentBillData.amount);
+            document.getElementById('confirmBillerName').textContent = currentBillData.billerName;
+            document.getElementById('confirmBillCategory').textContent = currentBillData.category;
+            document.getElementById('confirmBillReference').textContent = currentBillData.referenceNumber;
+            
+            closeModal('payBillsModal');
+            openModal('billConfirmModal');
+        }
+        
+        function confirmBillPayment() {
+            const result = BankingSystem.payBill({
+                billerId: currentBillData.billerId,
+                billerName: currentBillData.billerName,
+                category: currentBillData.category,
+                referenceNumber: currentBillData.referenceNumber,
+                amount: currentBillData.amount
+            });
+            
+            if (result.success) {
+                closeModal('billConfirmModal');
+                
+                // Show receipt
+                document.getElementById('receiptAmount').textContent = BankingSystem.formatCurrency(currentBillData.amount);
+                document.getElementById('receiptTransactionId').textContent = result.transaction.id;
+                document.getElementById('receiptDate').textContent = new Date().toLocaleString('de-DE');
+                document.getElementById('receiptBiller').textContent = currentBillData.billerName;
+                document.getElementById('receiptReference').textContent = currentBillData.referenceNumber;
+                
+                openModal('receiptModal');
+                updateBalanceDisplay();
+                renderTransactions();
+            } else {
+                showToast(result.error, 'error');
+            }
+        }
+        
+        function resetBillForm() {
+            document.getElementById('payBillForm').reset();
+            document.getElementById('billerSelect').innerHTML = '<option value="">Select biller</option>';
+            document.getElementById('addBillerForm').classList.add('hidden');
+            document.getElementById('billAmountError').classList.add('hidden');
+            document.getElementById('billAmount').classList.remove('error');
+        }
+        
+        function downloadReceipt() {
+            showToast('Receipt downloaded', 'success');
+        }
+        
+        // ==================== SUPPORT ====================
+        
+        function setSupportTab(tab) {
+            // Update tabs
+            document.querySelectorAll('#supportModal .tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('support-tab-' + tab).classList.add('active');
+            
+            // Show/hide sections
+            document.getElementById('faqSection').classList.add('hidden');
+            document.getElementById('ticketSection').classList.add('hidden');
+            document.getElementById('ticketsSection').classList.add('hidden');
+            document.getElementById(tab + 'Section').classList.remove('hidden');
+            
+            if (tab === 'tickets') {
+                renderTickets();
+            }
+        }
+        
+        function toggleFaq(button) {
+            const content = button.nextElementSibling;
+            const arrow = button.querySelector('svg');
+            
+            content.classList.toggle('hidden');
+            arrow.classList.toggle('rotate-180');
+        }
+        
+        function handleSupportTicket(event) {
+            event.preventDefault();
+            
+            const result = BankingSystem.submitTicket({
+                subject: document.getElementById('ticketSubject').value,
+                category: document.getElementById('ticketCategory').value,
+                message: document.getElementById('ticketMessage').value,
+                priority: document.getElementById('ticketPriority').value
+            });
+            
+            if (result.success) {
+                document.getElementById('ticketIdDisplay').textContent = result.ticket.id;
+                closeModal('supportModal');
+                openModal('ticketSuccessModal');
+                document.getElementById('supportTicketForm').reset();
+            }
+        }
+        
+        // ==================== TRANSACTIONS ====================
+        
+        function renderTransactions(filter = 'all') {
+            const transactions = BankingSystem.getTransactions(10);
+            const container = document.getElementById('transactionList');
+            
+            const filteredTransactions = filter === 'all' 
+                ? transactions 
+                : transactions.filter(t => t.type === filter);
+            
+            if (filteredTransactions.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No transactions found</div>';
+                return;
+            }
+            
+            container.innerHTML = filteredTransactions.map(tx => `
+                <div class="transaction-row">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 ${tx.type === 'credit' ? 'bg-green-100' : 'bg-red-100'} rounded-full flex items-center justify-center mr-3">
+                                <svg class="w-5 h-5 ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    ${tx.type === 'credit' 
+                                        ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>'
+                                        : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>'
+                                    }
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-medium text-gray-900">${tx.description}</div>
+                                <div class="text-sm text-gray-500">${tx.recipient || tx.category}</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-semibold ${tx.type === 'credit' ? 'text-green-600' : 'text-red-600'}">
+                                ${tx.type === 'credit' ? '+' : ''}${BankingSystem.formatCurrency(tx.amount)}
+                            </div>
+                            <div class="flex items-center justify-end mt-1">
+                                <span class="status-badge status-${tx.status} mr-2">${tx.status}</span>
+                                <span class="text-sm text-gray-500">${BankingSystem.formatDate(tx.date)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function filterTransactions(type) {
+            renderTransactions(type);
+        }
+        
+        function loadMoreTransactions() {
+            showToast('Loading more transactions...', 'info');
+        }
+        
+        function renderPendingDeposits() {
+            const deposits = BankingSystem.getPendingDeposits();
+            const container = document.getElementById('pendingDepositsList');
+            
+            if (deposits.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-gray-500 text-sm">No pending deposits</div>';
+                return;
+            }
+            
+            container.innerHTML = deposits.map(deposit => `
+                <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg mb-2">
+                    <div>
+                        <div class="font-medium text-sm">${BankingSystem.formatCurrency(deposit.amount)}</div>
+                        <div class="text-xs text-gray-500">Submitted ${BankingSystem.formatDate(deposit.date)}</div>
+                    </div>
+                    <span class="status-badge status-pending text-xs">Pending</span>
+                </div>
+            `).join('');
+        }
+        
+        function renderTickets() {
+            const tickets = BankingSystem.getTickets();
+            const container = document.getElementById('ticketsList');
+            
+            if (tickets.length === 0) {
+                container.innerHTML = '<div class="text-center py-8 text-gray-500">No support tickets yet</div>';
+                return;
+            }
+            
+            container.innerHTML = tickets.map(ticket => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex items-start justify-between mb-2">
+                        <div>
+                            <div class="font-medium">${ticket.subject}</div>
+                            <div class="text-sm text-gray-500">${ticket.category} • ${BankingSystem.formatDate(ticket.date)}</div>
+                        </div>
+                        <span class="status-badge status-${ticket.status} text-xs">${ticket.status}</span>
+                    </div>
+                    <div class="text-sm text-gray-600">${ticket.message.substring(0, 100)}...</div>
+                    <div class="mt-2 text-xs text-gray-400">Ticket ID: ${ticket.id}</div>
+                </div>
+            `).join('');
+        }
+        
+        // ==================== SPENDING CHART ====================
+        
+        function initializeSpendingChart() {
+            const chartElement = document.getElementById('spendingChart');
+            if (!chartElement) return;
+            
+            const chart = echarts.init(chartElement);
+            
+            const option = {
+                backgroundColor: 'transparent',
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 10,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    },
+                    label: {
+                        show: false
+                    },
+                    emphasis: {
+                        label: {
+                            show: true,
+                            fontSize: 14,
+                            fontWeight: 'bold'
+                        }
+                    },
+                    data: [
+                        { value: 35, name: 'Shopping', itemStyle: { color: '#C89A3A' } },
+                        { value: 25, name: 'Bills', itemStyle: { color: '#041225' } },
+                        { value: 20, name: 'Food', itemStyle: { color: '#0B2A3F' } },
+                        { value: 15, name: 'Transport', itemStyle: { color: '#8B96A3' } },
+                        { value: 5, name: 'Other', itemStyle: { color: '#E5E7EB' } }
+                    ]
+                }]
+            };
+            
+            chart.setOption(option);
+            
+            window.addEventListener('resize', () => chart.resize());
+        }
+        
+        // ==================== TOAST NOTIFICATIONS ====================
+        
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        ${type === 'success' 
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>'
+                            : type === 'error'
+                            ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>'
+                            : '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+                        }
+                    </svg>
+                    ${message}
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
