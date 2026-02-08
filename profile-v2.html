@@ -546,17 +546,7 @@
                 </div>
             </div>
             
-            <div class="info-item">
-                <div class="info-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                    </svg>
-                </div>
-                <div class="info-content">
-                    <div class="info-label">Member Since</div>
-                    <div class="info-value" id="infoJoined">--</div>
-                </div>
-            </div>
+
         </div>
     </div>
 
@@ -565,7 +555,7 @@
         <div class="card-header">
             <h2 class="card-title">Settings</h2>
         </div>
-        <div class="menu-item" onclick="showToast('Security settings coming soon')">
+        <div class="menu-item" onclick="openSecuritySettings()">
             <div class="menu-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
@@ -580,7 +570,7 @@
             </svg>
         </div>
         
-        <div class="menu-item" onclick="showToast('Notifications settings coming soon')">
+        <div class="menu-item" onclick="openNotificationsSettings()">
             <div class="menu-icon">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
@@ -604,6 +594,81 @@
             </svg>
             Log Out
         </button>
+    </div>
+
+    <!-- Security Settings Modal -->
+    <div id="securityModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'securityModal')">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">Security Settings</h3>
+                <button class="modal-close" onclick="closeModal('securityModal')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="securityForm" onsubmit="handleSecurityUpdate(event)">
+                    <div class="form-group">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" id="currentPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">New Password</label>
+                        <input type="password" id="newPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" id="confirmPassword" class="form-input" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">PIN (4 digits)</label>
+                        <input type="text" id="newPIN" class="form-input" placeholder="0000" maxlength="4" pattern="[0-9]{4}" required>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Update Security</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notifications Settings Modal -->
+    <div id="notificationsModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'notificationsModal')">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">Notification Settings</h3>
+                <button class="modal-close" onclick="closeModal('notificationsModal')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="notificationsForm" onsubmit="handleNotificationsUpdate(event)">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Push Notifications</div>
+                            <div style="font-size: 12px; color: #6B7280; margin-top: 0.25rem;">Receive alerts on your device</div>
+                        </div>
+                        <input type="checkbox" id="pushNotif" class="form-checkbox" checked>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">Email Alerts</div>
+                            <div style="font-size: 12px; color: #6B7280; margin-top: 0.25rem;">Important account updates via email</div>
+                        </div>
+                        <input type="checkbox" id="emailNotif" class="form-checkbox" checked>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 1rem; background: #F3F4F6; border-radius: 8px;">
+                        <div>
+                            <div style="font-weight: 600; font-size: 14px;">SMS Alerts</div>
+                            <div style="font-size: 12px; color: #6B7280; margin-top: 0.25rem;">Transaction confirmations via SMS</div>
+                        </div>
+                        <input type="checkbox" id="smsNotif" class="form-checkbox" checked>
+                    </div>
+                    <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem;">Save Preferences</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Bottom Navigation -->
@@ -736,11 +801,6 @@
             document.getElementById('infoPhone').textContent = currentUser.phone;
             document.getElementById('infoAccount').textContent = currentUser.accountNumber;
             document.getElementById('infoType').textContent = currentUser.accountType;
-            
-            const joinedDate = new Date(currentUser.createdAt);
-            document.getElementById('infoJoined').textContent = joinedDate.toLocaleDateString('en-US', { 
-                month: 'long', day: 'numeric', year: 'numeric' 
-            });
         }
 
         // Modal functions
@@ -816,6 +876,77 @@
             loadProfileData();
             closeModal('avatarModal');
             showToast('Photo removed');
+        }
+
+        // Security Settings
+        function openSecuritySettings() {
+            openModal('securityModal');
+        }
+
+        function handleSecurityUpdate(event) {
+            event.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const newPIN = document.getElementById('newPIN').value;
+            
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                showToast('Passwords do not match');
+                return;
+            }
+            
+            // Validate PIN is 4 digits
+            if (!/^\d{4}$/.test(newPIN)) {
+                showToast('PIN must be exactly 4 digits');
+                return;
+            }
+            
+            // Validate minimum password length
+            if (newPassword.length < 6) {
+                showToast('Password must be at least 6 characters');
+                return;
+            }
+            
+            // Update security settings in VanstraBank
+            const result = VanstraBank.updateSecuritySettings({
+                currentPassword: currentPassword,
+                newPassword: newPassword,
+                pin: newPIN
+            });
+            
+            if (result.success) {
+                closeModal('securityModal');
+                showToast('Security settings updated successfully');
+                document.getElementById('securityForm').reset();
+            } else {
+                showToast(result.error || 'Failed to update security settings');
+            }
+        }
+
+        // Notifications Settings
+        function openNotificationsSettings() {
+            // Load current settings from localStorage
+            const prefs = JSON.parse(localStorage.getItem('notificationPrefs') || '{"push": true, "email": true, "sms": true}');
+            document.getElementById('pushNotif').checked = prefs.push !== false;
+            document.getElementById('emailNotif').checked = prefs.email !== false;
+            document.getElementById('smsNotif').checked = prefs.sms !== false;
+            openModal('notificationsModal');
+        }
+
+        function handleNotificationsUpdate(event) {
+            event.preventDefault();
+            
+            const prefs = {
+                push: document.getElementById('pushNotif').checked,
+                email: document.getElementById('emailNotif').checked,
+                sms: document.getElementById('smsNotif').checked
+            };
+            
+            localStorage.setItem('notificationPrefs', JSON.stringify(prefs));
+            closeModal('notificationsModal');
+            showToast('Notification preferences saved');
         }
 
         // Logout

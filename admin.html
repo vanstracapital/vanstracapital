@@ -792,12 +792,12 @@
                     <table class="table">
                         <thead>
                             <tr>
+                                <th>Actions</th>
                                 <th>User</th>
                                 <th>Account</th>
                                 <th>Balance</th>
                                 <th>Status</th>
                                 <th>Last Login</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="usersTable">
@@ -915,8 +915,6 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Create mock users if none exist
-            createMockUsersIfNeeded();
             loadDashboard();
             startRealtimeUpdates();
             
@@ -949,7 +947,15 @@
             // Update users table
             const tableBody = document.getElementById('usersTable');
             tableBody.innerHTML = users.map(user => `
-                <tr>
+                <tr onclick="showUserDetails('${user.id}');" style="cursor: pointer; transition: background 0.2s;">
+                    <td>
+                        <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                            <button class="action-btn action-btn-edit" onclick="openEditUserModal(event, '${user.id}', '${user.fullName}', '${user.email}', ${user.balance})">Edit</button>
+                            <button class="action-btn action-btn-freeze" onclick="freezeUserAccount(event, '${user.id}', '${user.fullName}')">Freeze</button>
+                            <button class="action-btn action-btn-suspend" onclick="suspendUserAccount(event, '${user.id}', '${user.fullName}')">Suspend</button>
+                            <button class="action-btn action-btn-block" onclick="blockUserAccount(event, '${user.id}', '${user.fullName}')">Block</button>
+                        </div>
+                    </td>
                     <td>
                         <div class="user-cell">
                             <div class="user-avatar">${user.fullName.split(' ').map(n => n[0]).join('')}</div>
@@ -975,14 +981,6 @@
                     </td>
                     <td>
                         ${user.lastLogin ? new Date(user.lastLogin).toLocaleString('de-DE', {hour: '2-digit', minute:'2-digit', day:'numeric', month:'short'}) : 'Never'}
-                    </td>
-                    <td>
-                        <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
-                            <button class="action-btn action-btn-edit" onclick="openEditUserModal('${user.id}', '${user.fullName}', '${user.email}', ${user.balance})">Edit</button>
-                            <button class="action-btn action-btn-freeze" onclick="freezeUserAccount('${user.id}', '${user.fullName}')">Freeze</button>
-                            <button class="action-btn action-btn-suspend" onclick="suspendUserAccount('${user.id}', '${user.fullName}')">Suspend</button>
-                            <button class="action-btn action-btn-block" onclick="blockUserAccount('${user.id}', '${user.fullName}')">Block</button>
-                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1156,93 +1154,8 @@
         // User Management Functions
         let currentEditingUserId = null;
 
-        function createMockUsersIfNeeded() {
-            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
-            
-            // Only create mock users if the system is empty
-            if (Object.keys(vanstraUsers).length === 0) {
-                const mockUsers = {
-                    'USR-1001': {
-                        id: 'USR-1001',
-                        fullName: 'John Smith',
-                        email: 'john.smith@email.com',
-                        phone: '+49 123 456 7890',
-                        accountNumber: 'DE89370400440532013000',
-                        accountType: 'Premium Checking',
-                        balance: 15430.50,
-                        accountStatus: 'active',
-                        isOnline: true,
-                        lastLogin: new Date().toISOString(),
-                        createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-                        password: 'hashedPassword123',
-                        pin: 'hashedPIN1234'
-                    },
-                    'USR-1002': {
-                        id: 'USR-1002',
-                        fullName: 'Sarah Johnson',
-                        email: 'sarah.johnson@email.com',
-                        phone: '+49 234 567 8901',
-                        accountNumber: 'DE89370400440532013001',
-                        accountType: 'Premium Checking',
-                        balance: 28650.75,
-                        accountStatus: 'active',
-                        isOnline: false,
-                        lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-                        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-                        password: 'hashedPassword456',
-                        pin: 'hashedPIN5678'
-                    },
-                    'USR-1003': {
-                        id: 'USR-1003',
-                        fullName: 'Michael Brown',
-                        email: 'michael.brown@email.com',
-                        phone: '+49 345 678 9012',
-                        accountNumber: 'DE89370400440532013002',
-                        accountType: 'Premium Checking',
-                        balance: 42150.00,
-                        accountStatus: 'active',
-                        isOnline: true,
-                        lastLogin: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-                        createdAt: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000).toISOString(),
-                        password: 'hashedPassword789',
-                        pin: 'hashedPIN9012'
-                    },
-                    'USR-1004': {
-                        id: 'USR-1004',
-                        fullName: 'Emma Wilson',
-                        email: 'emma.wilson@email.com',
-                        phone: '+49 456 789 0123',
-                        accountNumber: 'DE89370400440532013003',
-                        accountType: 'Premium Checking',
-                        balance: 19875.25,
-                        accountStatus: 'active',
-                        isOnline: false,
-                        lastLogin: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-                        createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-                        password: 'hashedPassword012',
-                        pin: 'hashedPIN3456'
-                    },
-                    'USR-1005': {
-                        id: 'USR-1005',
-                        fullName: 'David Martinez',
-                        email: 'david.martinez@email.com',
-                        phone: '+49 567 890 1234',
-                        accountNumber: 'DE89370400440532013004',
-                        accountType: 'Premium Checking',
-                        balance: 55320.80,
-                        accountStatus: 'active',
-                        isOnline: true,
-                        lastLogin: new Date().toISOString(),
-                        createdAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000).toISOString(),
-                        password: 'hashedPassword345',
-                        pin: 'hashedPIN7890'
-                    }
-                };
-                localStorage.setItem('vanstraUsers', JSON.stringify(mockUsers));
-            }
-        }
-
-        function openEditUserModal(userId, fullName, email, balance) {
+        function openEditUserModal(event, userId, fullName, email, balance) {
+            event.stopPropagation();
             currentEditingUserId = userId;
             document.getElementById('modalUserName').value = fullName;
             document.getElementById('modalUserEmail').value = email;
@@ -1256,6 +1169,82 @@
             currentEditingUserId = null;
         }
 
+        function showUserDetails(userId) {
+            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+            const user = vanstraUsers[userId];
+            
+            if (!user) {
+                alert('User not found');
+                return;
+            }
+            
+            // Create a user details panel
+            let detailsHtml = `
+                <div style="background: linear-gradient(135deg, var(--navy) 0%, var(--slate) 100%); color: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 80px; height: 80px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold;">
+                            ${user.fullName.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div>
+                            <div style="font-size: 1.3rem; font-weight: 600;">${user.fullName}</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9;">${user.email}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.25rem;">Status: <span style="background: ${user.accountStatus === 'active' ? '#10B981' : '#EF4444'}; padding: 0.2rem 0.5rem; border-radius: 4px;">${user.accountStatus?.toUpperCase() || 'ACTIVE'}</span></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">Account Number</div>
+                        <div style="font-family: monospace; font-weight: 600;">${user.accountNumber}</div>
+                    </div>
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">Account Type</div>
+                        <div style="font-weight: 600;">${user.accountType}</div>
+                    </div>
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">Current Balance</div>
+                        <div style="font-weight: 600; color: var(--gold); font-size: 1.2rem;">€${user.balance.toLocaleString('de-DE', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px;">
+                        <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">Status</div>
+                        <div style="font-weight: 600;">${user.isOnline ? '🟢 Online' : '⚪ Offline'}</div>
+                    </div>
+                </div>
+                
+                <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+                    <div style="font-size: 0.85rem; color: #6B7280; margin-bottom: 0.5rem;">Phone</div>
+                    <div style="font-weight: 500;">${user.phone || 'Not provided'}</div>
+                </div>
+            `;
+            
+            // Show in alert or update the modal content
+            const userDetailsModal = document.createElement('div');
+            userDetailsModal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;';
+            userDetailsModal.onclick = () => userDetailsModal.remove();
+            
+            const content = document.createElement('div');
+            content.style.cssText = 'background: white; padding: 2rem; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;';
+            content.onclick = (e) => e.stopPropagation();
+            content.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="margin: 0; font-size: 1.3rem;">User Details</h2>
+                    <button onclick="this.closest('div').parentElement.parentElement.remove()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #6B7280;">×</button>
+                </div>
+                ${detailsHtml}
+                <button onclick="
+                    const modal = this.closest('div').parentElement;
+                    modal.remove();
+                    openEditUserModal({stopPropagation: () => {}}, '${userId}', '${user.fullName}', '${user.email}', ${user.balance});
+                " style="width: 100%; padding: 0.75rem; background: var(--gold); color: white; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; margin-top: 1rem;">
+                    Edit Account
+                </button>
+            `;
+            
+            userDetailsModal.appendChild(content);
+            document.body.appendChild(userDetailsModal);
+        }
+
         function saveUserChanges(event) {
             event.preventDefault();
             const newBalance = parseFloat(document.getElementById('modalUserBalance').value);
@@ -1267,8 +1256,33 @@
             
             if (vanstraUsers[currentEditingUserId]) {
                 const oldBalance = vanstraUsers[currentEditingUserId].balance;
+                const balanceChange = newBalance - oldBalance;
+                
                 vanstraUsers[currentEditingUserId].balance = newBalance;
                 vanstraUsers[currentEditingUserId].accountStatus = newStatus;
+                
+                // Initialize transactions array if not present
+                if (!vanstraUsers[currentEditingUserId].transactions) {
+                    vanstraUsers[currentEditingUserId].transactions = [];
+                }
+                
+                // Record business deposit transaction if balance was changed
+                if (balanceChange !== 0) {
+                    const transaction = {
+                        id: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                        type: 'deposit',
+                        subtype: 'business',
+                        description: 'Business Deposit (Admin Top-up)',
+                        amount: Math.abs(balanceChange),
+                        currency: 'EUR',
+                        status: 'completed',
+                        timestamp: new Date().toISOString(),
+                        reference: 'REF-' + Math.random().toString(36).substr(2, 8).toUpperCase()
+                    };
+                    
+                    vanstraUsers[currentEditingUserId].transactions.unshift(transaction);
+                }
+                
                 localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
                 
                 // Emit event for real-time updates
@@ -1277,11 +1291,12 @@
                     userName: userName,
                     oldBalance: oldBalance,
                     newBalance: newBalance,
-                    status: newStatus
+                    status: newStatus,
+                    balanceChange: balanceChange
                 });
                 
                 // Show success message
-                alert(`User account updated successfully!\nNew Balance: €${newBalance.toFixed(2)}\nStatus: ${newStatus}`);
+                alert(`User account updated successfully!\nNew Balance: €${newBalance.toFixed(2)}\nStatus: ${newStatus}${balanceChange !== 0 ? `\n\nTransaction recorded: ${balanceChange > 0 ? '+' : ''}€${Math.abs(balanceChange).toFixed(2)}` : ''}`);
                 
                 // Refresh dashboard
                 loadDashboard();
@@ -1291,21 +1306,24 @@
             }
         }
 
-        function freezeUserAccount(userId, userName) {
+        function freezeUserAccount(event, userId, userName) {
+            event.stopPropagation();
             if (confirm(`Are you sure you want to FREEZE the account for ${userName}?\n\nThis will prevent them from making any transactions.`)) {
                 updateUserStatus(userId, 'frozen', userName);
                 addActivityEvent('pin', `Account FROZEN for ${userName}`, userId);
             }
         }
 
-        function suspendUserAccount(userId, userName) {
+        function suspendUserAccount(event, userId, userName) {
+            event.stopPropagation();
             if (confirm(`Are you sure you want to SUSPEND the account for ${userName}?\n\nThis will temporarily disable their access.`)) {
                 updateUserStatus(userId, 'suspended', userName);
                 addActivityEvent('logout', `Account SUSPENDED for ${userName}`, userId);
             }
         }
 
-        function blockUserAccount(userId, userName) {
+        function blockUserAccount(event, userId, userName) {
+            event.stopPropagation();
             if (confirm(`Are you sure you want to BLOCK the account for ${userName}?\n\nThis action cannot be easily undone. The user will lose access immediately.`)) {
                 updateUserStatus(userId, 'blocked', userName);
                 addActivityEvent('logout', `Account BLOCKED for ${userName}`, userId);
