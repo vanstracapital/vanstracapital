@@ -1279,10 +1279,15 @@
             loadChatMessages();
             monitorAccountStatus();
             
-            // Listen for admin events
+            // Listen for admin events and chat messages
             VanstraBank.on('admin_reply', function(msg) {
                 if (msg.userId === currentUser.id) {
                     addChatMessage(msg.message, 'admin');
+                }
+            });
+            VanstraBank.on('chat_message', function(msg) {
+                if (msg.userId === currentUser.id) {
+                    addChatMessage(msg.message, msg.from === 'admin' ? 'admin' : 'user');
                 }
             });
         });
@@ -1418,7 +1423,7 @@
         function renderTransactions() {
             if (!currentUser || !currentUser.transactions) return;
             
-            const transactions = currentUser.transactions.slice(0, 5);
+            const transactions = (currentUser.transactions || []).filter(t => !t.internal).slice(0, 5);
             const container = document.getElementById('transactionList');
             
             if (transactions.length === 0) {
@@ -1732,7 +1737,7 @@
         // Receipt
         function showReceipt(transactionId) {
             const tx = currentUser.transactions.find(t => t.id === transactionId);
-            if (!tx) return;
+            if (!tx || tx.internal) return;
             
             currentReceipt = tx;
             const isIncome = tx.amount > 0;

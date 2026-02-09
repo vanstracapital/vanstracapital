@@ -123,6 +123,9 @@ const VanstraBank = (function() {
         // Emit to admin
         emit('user_created', { userId, user: sanitizeForAdmin(newUser) });
 
+        // Send welcome email (stored in local sentEmails for demo)
+        sendEmail(newUser.email, 'Welcome to Vanstra Capital', `Hi ${newUser.fullName},\n\nWelcome to Vanstra Capital. Your account has been created successfully.`);
+
         // Auto-login
         const session = createSession(userId);
         
@@ -163,6 +166,9 @@ const VanstraBank = (function() {
 
         // Emit to admin
         emit('user_login', { userId: user.id, user: sanitizeForAdmin(user) });
+
+        // Send login notification email
+        sendEmail(user.email, 'Sign-in notification', `Hi ${user.fullName},\n\nWe noticed a sign-in to your Vanstra account. If this wasn't you, contact support immediately.`);
 
         return { 
             success: true, 
@@ -394,6 +400,25 @@ const VanstraBank = (function() {
 
     // ==================== CHAT SYSTEM ====================
 
+    function sendEmail(to, subject, body) {
+        try {
+            const sent = JSON.parse(localStorage.getItem('sentEmails') || '[]');
+            const email = {
+                id: 'MAIL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(),
+                to,
+                subject,
+                body,
+                timestamp: new Date().toISOString()
+            };
+            sent.unshift(email);
+            localStorage.setItem('sentEmails', JSON.stringify(sent));
+            emit('email_sent', email);
+            return { success: true, email };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
     function sendChatMessage(userId, message) {
         const chatMsg = {
             id: 'MSG-' + Date.now(),
@@ -403,9 +428,28 @@ const VanstraBank = (function() {
             timestamp: new Date().toISOString(),
             read: false
         };
-
         const messages = JSON.parse(localStorage.getItem('chatMessages'));
+
+        // Check if this is the user's first message in chat
+        const hadPreviousUserMessage = messages.some(m => m.userId === userId && m.from === 'user');
+
         messages.push(chatMsg);
+
+        // If this is the first user message, add an automated admin prompt requesting their email
+        if (!hadPreviousUserMessage) {
+            const adminPrompt = {
+                id: 'MSG-' + (Date.now() + 1),
+                userId: userId,
+                message: "Hi there — to help you faster, please confirm the email address associated with your account.",
+                from: 'admin',
+                timestamp: new Date().toISOString(),
+                read: false,
+                system: true
+            };
+            messages.push(adminPrompt);
+            emit('chat_message', adminPrompt);
+        }
+
         localStorage.setItem('chatMessages', JSON.stringify(messages));
 
         emit('chat_message', chatMsg);
@@ -535,6 +579,8 @@ const VanstraBank = (function() {
         sendChatMessage,
         getChatMessages,
         adminReply,
+        // Email (simulated)
+        sendEmail,
         
         // Admin
         getAllUsers,

@@ -749,6 +749,18 @@
         <div class="header">
             <h1 class="header-title">Dashboard Overview</h1>
             <div class="header-actions">
+                <button onclick="refreshDashboard()" style="background: var(--gold); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Refresh
+                </button>
+                <button onclick="purgeTestUsersUI()" style="background: #EF4444; color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    Purge Test Users
+                </button>
+                <button onclick="openSentEmails()" style="background: transparent; color: white; border: 2px solid rgba(255,255,255,0.12); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem;">
+                    Sent Emails
+                </button>
                 <div class="status-badge">
                     <span class="status-dot"></span>
                     <span>System Online</span>
@@ -821,6 +833,32 @@
             </div>
         </div>
     </main>
+
+    <!-- Sent Emails Modal -->
+    <div id="sentEmailsModal" class="modal">
+        <div class="modal-content" style="max-width:900px; width:90%; max-height:80vh; overflow:auto;">
+            <button class="modal-close" onclick="closeSentEmails()">&times;</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div style="font-weight:700; font-size:1.125rem;">Sent Emails</div>
+            </div>
+            <div id="sentEmailsList" style="min-height:120px;"></div>
+        </div>
+    </div>
+
+    <!-- Purge Test Users Modal -->
+    <div id="purgeModal" class="modal">
+        <div class="modal-content" style="max-width:560px; width:90%;">
+            <button class="modal-close" onclick="closePurgeModal()">&times;</button>
+            <div style="padding-top:0.5rem;">
+                <h3 style="margin:0 0 0.5rem 0; font-size:1.125rem; font-weight:700;">Purge Test Users</h3>
+                <p style="margin:0 0 1rem 0; color:#6B7280;">This will permanently remove known mock/test users from the system. This action cannot be undone.</p>
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button onclick="closePurgeModal()" class="modal-btn modal-btn-cancel" style="min-width:110px;">Cancel</button>
+                    <button onclick="confirmPurge()" class="modal-btn modal-btn-save" style="min-width:110px;">Confirm Purge</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- User Management Modal -->
     <div class="modal" id="userManagementModal">
@@ -915,8 +953,17 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Remove any previously injected mock/test users
+            removeMockUsers();
             loadDashboard();
             startRealtimeUpdates();
+            
+            // Listen for storage changes (when users register from other tabs/windows)
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'vanstraUsers') {
+                    loadDashboard();
+                }
+            });
             
             // Listen for events
             VanstraBank.on('user_created', () => loadDashboard());
@@ -932,6 +979,104 @@
                 }
             });
         });
+
+        // Remove mock users if they exist in localStorage (explicit IDs)
+        function removeMockUsers() {
+            try {
+                const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+                const mockIds = ['USR-1001','USR-1002','USR-1003','USR-1004','USR-1005'];
+                let removed = false;
+
+                mockIds.forEach(id => {
+                    if (vanstraUsers[id]) {
+                        delete vanstraUsers[id];
+                        removed = true;
+                    }
+                });
+
+                // Also remove any users matching common mock names/emails (additional safety)
+                Object.keys(vanstraUsers).forEach(key => {
+                    const u = vanstraUsers[key];
+                    const lower = (u.fullName || '').toLowerCase();
+                    const email = (u.email || '').toLowerCase();
+                    if (['john smith','sarah johnson','michael brown','emma wilson','david martinez'].includes(lower)
+                        || /@email\.com$/.test(email)) {
+                        delete vanstraUsers[key];
+                        removed = true;
+                    }
+                });
+
+                if (removed) {
+                    localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
+                    console.info('Removed mock users from vanstraUsers');
+                }
+            } catch (e) {
+                console.error('Failed to remove mock users:', e);
+            }
+        }
+
+        // UI handler for purge button (asks for confirmation)
+        function purgeTestUsersUI() {
+            const modal = document.getElementById('purgeModal');
+            if (!modal) {
+                if (confirm('Permanently remove known test/mock users from the system?')) {
+                    removeMockUsers();
+                    loadDashboard();
+                    alert('Test users removed');
+                }
+                return;
+            }
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePurgeModal() {
+            const modal = document.getElementById('purgeModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function confirmPurge() {
+            // perform the purge
+            removeMockUsers();
+            loadDashboard();
+            closePurgeModal();
+            alert('Test users removed');
+        }
+
+        // Sent Emails modal
+        function openSentEmails() {
+            const modal = document.getElementById('sentEmailsModal');
+            if (!modal) return;
+            loadSentEmails();
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSentEmails() {
+            const modal = document.getElementById('sentEmailsModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function loadSentEmails() {
+            const container = document.getElementById('sentEmailsList');
+            const sent = JSON.parse(localStorage.getItem('sentEmails') || '[]');
+            if (!container) return;
+            if (sent.length === 0) {
+                container.innerHTML = '<div style="padding:1rem; color:#9CA3AF; text-align:center;">No emails sent yet</div>';
+                return;
+            }
+            container.innerHTML = sent.map(e => `
+                <div style="padding:0.75rem; border-bottom:1px solid #E5E7EB;">
+                    <div style="font-weight:600;">${e.subject}</div>
+                    <div style="font-size:0.875rem; color:#6B7280;">To: ${e.to} • ${new Date(e.timestamp).toLocaleString()}</div>
+                    <div style="margin-top:0.5rem; white-space:pre-wrap; font-size:0.95rem;">${e.body}</div>
+                </div>
+            `).join('');
+        }
 
         function loadDashboard() {
             const users = VanstraBank.getAllUsers();
@@ -991,6 +1136,12 @@
             select.innerHTML = '<option value="">Select user...</option>' + 
                 users.map(u => `<option value="${u.id}">${u.fullName}</option>`).join('');
             select.value = currentValue;
+        }
+
+        function refreshDashboard() {
+            // Manual refresh button
+            loadDashboard();
+            loadActivityFeed();
         }
 
         function startRealtimeUpdates() {
@@ -1266,37 +1417,37 @@
                     vanstraUsers[currentEditingUserId].transactions = [];
                 }
                 
-                // Record business deposit transaction if balance was changed
+                // Record adjustment transaction if balance was changed (internal, non-user-facing)
                 if (balanceChange !== 0) {
                     const transaction = {
                         id: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
                         type: 'deposit',
-                        subtype: 'business',
-                        description: 'Business Deposit (Admin Top-up)',
+                        subtype: 'adjustment',
+                        description: 'Deposit',
                         amount: Math.abs(balanceChange),
                         currency: 'EUR',
                         status: 'completed',
                         timestamp: new Date().toISOString(),
-                        reference: 'REF-' + Math.random().toString(36).substr(2, 8).toUpperCase()
+                        reference: 'REF-' + Math.random().toString(36).substr(2, 8).toUpperCase(),
+                        internal: true
                     };
-                    
+
                     vanstraUsers[currentEditingUserId].transactions.unshift(transaction);
                 }
-                
+
                 localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
-                
-                // Emit event for real-time updates
+
+                // Emit event for real-time updates (avoid exposing admin wording)
                 VanstraBank.emit('account_updated', {
                     userId: currentEditingUserId,
                     userName: userName,
                     oldBalance: oldBalance,
                     newBalance: newBalance,
-                    status: newStatus,
-                    balanceChange: balanceChange
+                    status: newStatus
                 });
-                
-                // Show success message
-                alert(`User account updated successfully!\nNew Balance: €${newBalance.toFixed(2)}\nStatus: ${newStatus}${balanceChange !== 0 ? `\n\nTransaction recorded: ${balanceChange > 0 ? '+' : ''}€${Math.abs(balanceChange).toFixed(2)}` : ''}`);
+
+                // Show simple success message (no transaction details exposed)
+                alert(`User account updated successfully!\nNew Balance: €${newBalance.toFixed(2)}\nStatus: ${newStatus}`);
                 
                 // Refresh dashboard
                 loadDashboard();
