@@ -700,6 +700,11 @@
             }
         }
     </style>
+    <!-- Supabase (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="supabase-client.js"></script>
+    <!-- Copy supabase-config.example.js -> supabase-config.js and fill in your keys to enable Supabase integration -->
+    <script src="supabase-config.js"></script>
 </head>
 <body>
     <!-- Sidebar -->
@@ -755,11 +760,14 @@
                     </svg>
                     Refresh
                 </button>
-                <button onclick="purgeTestUsersUI()" style="background: #EF4444; color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                <button onclick="purgeTestUsersUI()" style="background: var(--slate); color: var(--gold); border: 2px solid var(--gold); padding: 0.45rem 0.9rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
                     Purge Test Users
                 </button>
-                <button onclick="openSentEmails()" style="background: transparent; color: white; border: 2px solid rgba(255,255,255,0.12); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem;">
+                <button onclick="openSentEmails()" style="background: var(--slate); color: var(--gold); border: 2px solid var(--gold); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem;">
                     Sent Emails
+                </button>
+                <button onclick="openMigrationModal()" style="background: var(--slate); color: var(--gold); border: 2px solid var(--gold); padding: 0.35rem 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 0.75rem;">
+                    Migrate to Supabase
                 </button>
                 <div class="status-badge">
                     <span class="status-dot"></span>
@@ -855,6 +863,24 @@
                 <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
                     <button onclick="closePurgeModal()" class="modal-btn modal-btn-cancel" style="min-width:110px;">Cancel</button>
                     <button onclick="confirmPurge()" class="modal-btn modal-btn-save" style="min-width:110px;">Confirm Purge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Migration Modal -->
+    <div id="migrationModal" class="modal">
+        <div class="modal-content" style="max-width:720px; width:90%;">
+            <button class="modal-close" onclick="closeMigrationModal()">&times;</button>
+            <div style="padding-top:0.5rem;">
+                <h3 style="margin:0 0 0.5rem 0; font-size:1.125rem; font-weight:700;">Migrate Local Users to Supabase</h3>
+                <p style="margin:0 0 1rem 0; color:#6B7280;">This will attempt to push all users and their transactions from localStorage to your Supabase project. Ensure `supabase-config.js` is configured first.</p>
+
+                <div id="migrationProgress" style="background:#F8FAFC; padding:0.75rem; border-radius:6px; min-height:80px; overflow:auto; margin-bottom:1rem; color:#111827;"></div>
+
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button onclick="closeMigrationModal()" class="modal-btn modal-btn-cancel" style="min-width:110px;">Close</button>
+                    <button id="startMigrationBtn" onclick="runMigration()" class="modal-btn modal-btn-save" style="min-width:140px;">Start Migration</button>
                 </div>
             </div>
         </div>
@@ -957,6 +983,7 @@
             removeMockUsers();
             loadDashboard();
             startRealtimeUpdates();
+            startSupabaseUserSync();  // Fetch new users from Supabase every 5 seconds
             
             // Listen for storage changes (when users register from other tabs/windows)
             window.addEventListener('storage', function(e) {
@@ -1045,6 +1072,85 @@
             alert('Test users removed');
         }
 
+        function openMigrationModal() {
+            const modal = document.getElementById('migrationModal');
+            if (!modal) return alert('Migration modal not found');
+            document.getElementById('migrationProgress').innerHTML = '';
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMigrationModal() {
+            const modal = document.getElementById('migrationModal');
+            if (!modal) return;
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        async function runMigration() {
+            const startBtn = document.getElementById('startMigrationBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = 'Migrating...';
+
+            const progressEl = document.getElementById('migrationProgress');
+
+            if (!window.SupabaseDB || !window.SupabaseDB.initialized) {
+                progressEl.innerHTML += `<div style="color:#B91C1C;">Supabase is not initialized. Please configure <strong>supabase-config.js</strong> first.</div>`;
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Migration';
+                return;
+            }
+
+            const users = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+            const userList = Object.values(users || {});
+            if (!userList.length) {
+                progressEl.innerHTML += `<div>No local users found to migrate.</div>`;
+                startBtn.disabled = false;
+                startBtn.textContent = 'Start Migration';
+                return;
+            }
+
+            progressEl.innerHTML += `<div>Found ${userList.length} users. Starting migration...</div>`;
+
+            for (let i = 0; i < userList.length; i++) {
+                const u = userList[i];
+                progressEl.innerHTML += `<div>(${i+1}/${userList.length}) Migrating user ${u.id} (${u.email})...</div>`;
+                try {
+                    try {
+                        await window.SupabaseDB.createUser(u);
+                        progressEl.innerHTML += `<div style="color:#059669;">User created in Supabase</div>`;
+                    } catch (e) {
+                        // try update if already exists
+                        try { await window.SupabaseDB.updateUser(u.id, u); progressEl.innerHTML += `<div style="color:#F59E0B;">User upserted (updated)</div>`; } catch (err) { progressEl.innerHTML += `<div style="color:#B91C1C;">User create/update failed: ${err.message || err}</div>`; }
+                    }
+
+                    // Migrate transactions for this user
+                    const txns = u.transactions || [];
+                    if (txns.length) {
+                        progressEl.innerHTML += `<div> -- ${txns.length} transactions to migrate</div>`;
+                        for (let t = 0; t < txns.length; t++) {
+                            const txn = txns[t];
+                            try {
+                                await window.SupabaseDB.createTransaction(u.id, txn);
+                            } catch (e) {
+                                progressEl.innerHTML += `<div style="color:#B91C1C;"> -- txn ${txn.id} failed: ${e.message || e}</div>`;
+                            }
+                        }
+                        progressEl.innerHTML += `<div style="color:#059669;"> -- transactions migrated</div>`;
+                    }
+                } catch (e) {
+                    progressEl.innerHTML += `<div style="color:#B91C1C;">Migration error for user ${u.id}: ${e.message || e}</div>`;
+                }
+                // keep scroll at bottom
+                progressEl.scrollTop = progressEl.scrollHeight;
+                await new Promise(r => setTimeout(r, 150));
+            }
+
+            progressEl.innerHTML += `<div style="margin-top:0.5rem; font-weight:600; color:#064E3B;">Migration complete.</div>`;
+            startBtn.disabled = false;
+            startBtn.textContent = 'Start Migration';
+        }
+
         // Sent Emails modal
         function openSentEmails() {
             const modal = document.getElementById('sentEmailsModal');
@@ -1080,7 +1186,36 @@
 
         function loadDashboard() {
             const users = VanstraBank.getAllUsers();
-            
+
+            // Background: attempt to fetch users from Supabase if initialized
+            try {
+                if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                    (async () => {
+                        try {
+                            const supaUsers = await window.SupabaseDB.getAllUsers();
+                            if (Array.isArray(supaUsers) && supaUsers.length > 0) {
+                                // Merge Supabase users with local users
+                                const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+                                let updated = false;
+                                supaUsers.forEach(u => {
+                                    if (!vanstraUsers[u.id]) {
+                                        vanstraUsers[u.id] = u;
+                                        updated = true;
+                                    }
+                                });
+                                if (updated) {
+                                    localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
+                                    // Re-render if new users added
+                                    setTimeout(() => loadDashboard(), 100);
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('Failed to sync users from Supabase', e);
+                        }
+                    })();
+                }
+            } catch (e) { console.warn('Supabase sync failed', e); }
+
             // Update stats
             document.getElementById('totalUsers').textContent = users.length;
             document.getElementById('onlineUsers').textContent = users.filter(u => u.isOnline).length;
@@ -1142,6 +1277,33 @@
             // Manual refresh button
             loadDashboard();
             loadActivityFeed();
+        }
+
+        function startSupabaseUserSync() {
+            // Poll Supabase every 5 seconds to fetch new users
+            setInterval(async () => {
+                try {
+                    if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                        const supaUsers = await window.SupabaseDB.getAllUsers();
+                        if (Array.isArray(supaUsers)) {
+                            const vanstraUsers = JSON.parse(localStorage.getItem('vanstraUsers') || '{}');
+                            let updated = false;
+                            supaUsers.forEach(u => {
+                                if (!vanstraUsers[u.id]) {
+                                    vanstraUsers[u.id] = u;
+                                    updated = true;
+                                }
+                            });
+                            if (updated) {
+                                localStorage.setItem('vanstraUsers', JSON.stringify(vanstraUsers));
+                                loadDashboard();
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Silent fail, only warn in console
+                }
+            }, 5000);
         }
 
         function startRealtimeUpdates() {

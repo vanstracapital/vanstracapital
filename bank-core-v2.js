@@ -126,9 +126,25 @@ const VanstraBank = (function() {
         // Send welcome email (stored in local sentEmails for demo)
         sendEmail(newUser.email, 'Welcome to Vanstra Capital', `Hi ${newUser.fullName},\n\nWelcome to Vanstra Capital. Your account has been created successfully.`);
 
+        // Background: attempt to store user in Supabase if available
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try {
+                        // createUser expects the full user object
+                        await window.SupabaseDB.createUser(newUser);
+                    } catch (e) {
+                        console.warn('Supabase createUser failed', e);
+                    }
+                })();
+            }
+        } catch (e) {
+            console.warn('Supabase unavailable', e);
+        }
+
         // Auto-login
         const session = createSession(userId);
-        
+
         return { 
             success: true, 
             user: sanitizeForClient(newUser),
@@ -169,6 +185,32 @@ const VanstraBank = (function() {
 
         // Send login notification email
         sendEmail(user.email, 'Sign-in notification', `Hi ${user.fullName},\n\nWe noticed a sign-in to your Vanstra account. If this wasn't you, contact support immediately.`);
+
+        // Background: ensure user exists/updated in Supabase
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try {
+                        await window.SupabaseDB.updateUser(user.id, {
+                            id: user.id,
+                            fullName: user.fullName,
+                            email: user.email,
+                            phone: user.phone,
+                            accountNumber: user.accountNumber,
+                            accountType: user.accountType,
+                            balance: user.balance,
+                            currency: user.currency,
+                            isOnline: true,
+                            lastLogin: user.lastLogin
+                        });
+                    } catch (e) {
+                        try { await window.SupabaseDB.createUser(user); } catch (err) { console.warn('Supabase upsert failed', err); }
+                    }
+                })();
+            }
+        } catch (e) {
+            console.warn('Supabase unavailable', e);
+        }
 
         return { 
             success: true, 
@@ -323,6 +365,15 @@ const VanstraBank = (function() {
 
         emit('transaction', { userId, transaction, newBalance: user.balance });
 
+        // persist to Supabase in background if available
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try { await window.SupabaseDB.createTransaction(userId, transaction); } catch (e) { console.warn('Supabase createTransaction failed', e); }
+                })();
+            }
+        } catch (e) { console.warn('Supabase unavailable', e); }
+
         return { success: true, transaction, newBalance: user.balance };
     }
 
@@ -363,6 +414,14 @@ const VanstraBank = (function() {
 
         emit('transaction', { userId, transaction, newBalance: user.balance });
 
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try { await window.SupabaseDB.createTransaction(userId, transaction); } catch (e) { console.warn('Supabase createTransaction failed', e); }
+                })();
+            }
+        } catch (e) { console.warn('Supabase unavailable', e); }
+
         return { success: true, transaction, newBalance: user.balance };
     }
 
@@ -395,6 +454,14 @@ const VanstraBank = (function() {
 
         emit('deposit_submitted', { userId, transaction });
 
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try { await window.SupabaseDB.createTransaction(userId, transaction); } catch (e) { console.warn('Supabase createTransaction failed', e); }
+                })();
+            }
+        } catch (e) { console.warn('Supabase unavailable', e); }
+
         return { success: true, transaction };
     }
 
@@ -402,7 +469,6 @@ const VanstraBank = (function() {
 
     function sendEmail(to, subject, body) {
         try {
-            const sent = JSON.parse(localStorage.getItem('sentEmails') || '[]');
             const email = {
                 id: 'MAIL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(),
                 to,
@@ -410,9 +476,24 @@ const VanstraBank = (function() {
                 body,
                 timestamp: new Date().toISOString()
             };
+
+            // store locally
+            const sent = JSON.parse(localStorage.getItem('sentEmails') || '[]');
             sent.unshift(email);
             localStorage.setItem('sentEmails', JSON.stringify(sent));
             emit('email_sent', email);
+
+            // attempt to persist to Supabase as well
+            try {
+                if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                    (async () => {
+                        try { await window.SupabaseDB.storeEmail(email); } catch (e) { console.warn('Supabase storeEmail failed', e); }
+                    })();
+                }
+            } catch (e) {
+                console.warn('Supabase unavailable', e);
+            }
+
             return { success: true, email };
         } catch (e) {
             return { success: false, error: e.message };
@@ -469,6 +550,28 @@ const VanstraBank = (function() {
         if (!usersData) return [];
         const users = JSON.parse(usersData);
         if (!users || Object.keys(users).length === 0) return [];
+
+        // Background: if Supabase is enabled, try to sync users from Supabase
+        try {
+            if (window.SupabaseDB && window.SupabaseDB.initialized) {
+                (async () => {
+                    try {
+                        const supaUsers = await window.SupabaseDB.getAllUsers();
+                        // supaUsers is expected to be an array; convert to object keyed by id
+                        if (Array.isArray(supaUsers) && supaUsers.length > 0) {
+                            const usersObj = {};
+                            supaUsers.forEach(u => { usersObj[u.id] = Object.assign({}, users[u.id] || {}, u); });
+                            // Merge with local users to preserve local-only fields
+                            const merged = Object.assign({}, users, usersObj);
+                            localStorage.setItem('vanstraUsers', JSON.stringify(merged));
+                        }
+                    } catch (e) {
+                        console.warn('Failed to sync users from Supabase', e);
+                    }
+                })();
+            }
+        } catch (e) { console.warn('Supabase unavailable', e); }
+
         return Object.values(users).map(sanitizeForAdmin);
     }
 
@@ -557,6 +660,121 @@ const VanstraBank = (function() {
         });
     }
 
+    // ==================== PROFILE MANAGEMENT ====================
+
+    function updateProfile(profileData) {
+        try {
+            const sessionToken = localStorage.getItem('currentSession');
+            if (!sessionToken) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const sessions = JSON.parse(localStorage.getItem('vanstraSessions'));
+            const session = sessions[sessionToken];
+            if (!session) {
+                return { success: false, error: 'Session not found' };
+            }
+
+            const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+            const user = users[session.userId];
+            if (!user) {
+                return { success: false, error: 'User not found' };
+            }
+
+            // Update profile fields
+            if (profileData.fullName) user.fullName = profileData.fullName;
+            if (profileData.email) user.email = profileData.email;
+            if (profileData.phone) user.phone = profileData.phone;
+
+            users[session.userId] = user;
+            localStorage.setItem('vanstraUsers', JSON.stringify(users));
+
+            // Emit event
+            emit('profile_updated', { userId: session.userId, user: sanitizeForClient(user) });
+
+            return { success: true, user: sanitizeForClient(user) };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
+    function updateAvatar(dataUrl) {
+        try {
+            const sessionToken = localStorage.getItem('currentSession');
+            if (!sessionToken) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const sessions = JSON.parse(localStorage.getItem('vanstraSessions'));
+            const session = sessions[sessionToken];
+            if (!session) {
+                return { success: false, error: 'Session not found' };
+            }
+
+            const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+            const user = users[session.userId];
+            if (!user) {
+                return { success: false, error: 'User not found' };
+            }
+
+            // Update avatar
+            user.avatar = dataUrl;
+            users[session.userId] = user;
+            localStorage.setItem('vanstraUsers', JSON.stringify(users));
+
+            // Emit event
+            emit('avatar_updated', { userId: session.userId, avatar: dataUrl });
+
+            return { success: true, user: sanitizeForClient(user) };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
+    function updateSecuritySettings(securityData) {
+        try {
+            const sessionToken = localStorage.getItem('currentSession');
+            if (!sessionToken) {
+                return { success: false, error: 'Not authenticated' };
+            }
+
+            const sessions = JSON.parse(localStorage.getItem('vanstraSessions'));
+            const session = sessions[sessionToken];
+            if (!session) {
+                return { success: false, error: 'Session not found' };
+            }
+
+            const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+            const user = users[session.userId];
+            if (!user) {
+                return { success: false, error: 'User not found' };
+            }
+
+            // Verify current password before allowing changes
+            if (user.passwordHash !== hashString(securityData.currentPassword)) {
+                return { success: false, error: 'Current password is incorrect' };
+            }
+
+            // Update password and PIN if provided
+            if (securityData.newPassword) {
+                user.passwordHash = hashString(securityData.newPassword);
+            }
+            if (securityData.pin) {
+                user.pinHash = hashString(securityData.pin);
+            }
+
+            users[session.userId] = user;
+            localStorage.setItem('vanstraUsers', JSON.stringify(users));
+
+            // Emit event
+            emit('security_updated', { userId: session.userId });
+
+            return { success: true };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
     // ==================== PUBLIC API ====================
 
     return {
@@ -566,6 +784,11 @@ const VanstraBank = (function() {
         logout,
         getCurrentUser,
         isAuthenticated,
+        
+        // Profile
+        updateProfile,
+        updateAvatar,
+        updateSecuritySettings,
         
         // PIN
         verifyPin,
