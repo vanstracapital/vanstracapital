@@ -860,15 +860,6 @@
             </div>
             <span class="quick-action-label">Pay Bills</span>
         </div>
-        
-        <div class="quick-action" onclick="openSupportModal()">
-            <div class="quick-action-icon">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                </svg>
-            </div>
-            <span class="quick-action-label">Support</span>
-        </div>
     </section>
 
     <!-- Recent Transactions -->
@@ -1164,61 +1155,6 @@
                     
                     <button type="submit" class="btn btn-primary">Continue to PIN</button>
                 </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Support Modal -->
-    <div id="supportModal" class="modal-overlay" onclick="closeModalOnOverlay(event, 'supportModal')">
-        <div class="modal-sheet">
-            <div class="modal-header">
-                <h3 class="modal-title">Contact Support</h3>
-                <button class="modal-close" onclick="closeModal('supportModal')">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="supportForm" onsubmit="handleSupport(event)">
-                    <div class="form-group">
-                        <label class="form-label">Subject</label>
-                        <input type="text" id="ticketSubject" class="form-input" placeholder="What's your issue about?" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <select id="ticketCategory" class="form-select" required>
-                            <option value="">Select category</option>
-                            <option value="Account">Account Issues</option>
-                            <option value="Transfers">Transfers & Payments</option>
-                            <option value="Cards">Cards</option>
-                            <option value="Technical">Technical Support</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">Message</label>
-                        <textarea id="ticketMessage" class="form-input" rows="4" placeholder="Describe your issue..." required></textarea>
-                    </div>
-                    
-                    <button type="submit" class="btn btn-primary">Submit Ticket</button>
-                </form>
-                
-                <div class="mt-6 pt-6 border-t border-gray-200">
-                    <h4 class="font-semibold text-gray-700 mb-3">Common Questions</h4>
-                    <div class="space-y-2">
-                        <details class="bg-gray-50 rounded-lg">
-                            <summary class="p-3 cursor-pointer font-medium text-sm">How do I transfer money?</summary>
-                            <p class="px-3 pb-3 text-sm text-gray-600">Tap Transfer, select your accounts, enter amount, and confirm with your PIN.</p>
-                        </details>
-                        <details class="bg-gray-50 rounded-lg">
-                            <summary class="p-3 cursor-pointer font-medium text-sm">How long do deposits take?</summary>
-                            <p class="px-3 pb-3 text-sm text-gray-600">Mobile deposits typically clear within 1-2 business days.</p>
-                        </details>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -1709,30 +1645,7 @@
             openPinModal();
         }
 
-        // Support
-        function openSupportModal() {
-            if (!isAccountActive()) {
-                showRestrictionAlert();
-                return;
-            }
-            document.getElementById('supportForm').reset();
-            openModal('supportModal');
-        }
-
-        function handleSupport(event) {
-            event.preventDefault();
-            
-            const result = VanstraBank.submitTicket({
-                subject: document.getElementById('ticketSubject').value,
-                category: document.getElementById('ticketCategory').value,
-                message: document.getElementById('ticketMessage').value
-            });
-            
-            if (result.success) {
-                closeModal('supportModal');
-                showToast('Ticket submitted: ' + result.ticket.id, 'success');
-            }
-        }
+        // Support: Use 3CX live chat widget instead
 
         // Receipt
         function showReceipt(transactionId) {

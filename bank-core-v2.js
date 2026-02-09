@@ -467,7 +467,7 @@ const VanstraBank = (function() {
 
     // ==================== CHAT SYSTEM ====================
 
-    function sendEmail(to, subject, body) {
+    function sendEmail(to, subject, body, extraVars = {}) {
         try {
             const email = {
                 id: 'MAIL-' + Date.now() + '-' + Math.random().toString(36).substr(2,6).toUpperCase(),
@@ -477,11 +477,25 @@ const VanstraBank = (function() {
                 timestamp: new Date().toISOString()
             };
 
-            // store locally
+            // Store locally
             const sent = JSON.parse(localStorage.getItem('sentEmails') || '[]');
             sent.unshift(email);
             localStorage.setItem('sentEmails', JSON.stringify(sent));
             emit('email_sent', email);
+
+            // Send real email via EmailJS
+            if (window.emailjs) {
+                const templateVars = {
+                    to_email: to,
+                    subject: subject,
+                    message: body,
+                    reply_to: 'noreply@vanstracapital.com',
+                    ...extraVars
+                };
+                emailjs.send('service_vanstra', 'template_password_reset', templateVars).catch(err => {
+                    console.warn('Email failed:', err);
+                });
+            }
 
             // attempt to persist to Supabase as well
             try {

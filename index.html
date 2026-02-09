@@ -20,6 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+    
     <!-- Supabase (optional) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="supabase-client.js"></script>
@@ -683,6 +684,21 @@
         </div>
     </footer>
 
+    <script src="bank-core-v2.js"></script>
     <script src="main.js"></script>
+    
+    <!-- EmailJS for sending emails -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/index.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            if (window.emailjs) {
+                emailjs.init('GvLlTxARDyflHhZTz'); // Replace with your EmailJS public key
+            }
+        })();
+    </script>
+    
+    <!-- 3CX Live Chat Widget -->
+    <call-us-selector phonesystem-url="https://1575.3cx.cloud" party="LiveChat962369"></call-us-selector>
+    <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
 </body>
 </html>
