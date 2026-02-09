@@ -775,6 +775,115 @@ const VanstraBank = (function() {
         }
     }
 
+    // ==================== PASSWORD RECOVERY ====================
+
+    function requestPasswordReset(email) {
+        try {
+            const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+            const user = Object.values(users).find(u => u.email === email);
+            
+            if (!user) {
+                // For security, don't reveal if email exists
+                return { success: true, message: 'If an account with this email exists, a reset link has been sent.' };
+            }
+
+            // Generate reset token
+            const resetToken = Math.random().toString(36).substr(2) + Date.now().toString(36);
+            const resetExpiry = new Date(Date.now() + 3600000).toISOString(); // 1 hour expiry
+            
+            // Store reset token
+            let resetRequests = JSON.parse(localStorage.getItem('passwordResetRequests') || '{}');
+            resetRequests[resetToken] = {
+                userId: user.id,
+                email: email,
+                expiresAt: resetExpiry,
+                createdAt: new Date().toISOString()
+            };
+            localStorage.setItem('passwordResetRequests', JSON.stringify(resetRequests));
+
+            // Simulate sending email with reset link
+            const resetLink = `${window.location.origin}/reset-password.html?token=${resetToken}`;
+            sendEmail(email, 'Password Reset Request', 
+                `Click the link below to reset your password. This link expires in 1 hour.\n\n${resetLink}\n\nIf you didn't request this, please ignore this email.`
+            );
+
+            // Log the event
+            emit('password_reset_requested', { email, timestamp: new Date().toISOString() });
+
+            return { success: true, message: 'If an account with this email exists, a reset link has been sent.' };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
+    function resetPasswordWithToken(token, newPassword) {
+        try {
+            let resetRequests = JSON.parse(localStorage.getItem('passwordResetRequests') || '{}');
+            const resetRequest = resetRequests[token];
+
+            if (!resetRequest) {
+                return { success: false, error: 'Invalid or expired reset token' };
+            }
+
+            // Check if token has expired
+            if (new Date() > new Date(resetRequest.expiresAt)) {
+                delete resetRequests[token];
+                localStorage.setItem('passwordResetRequests', JSON.stringify(resetRequests));
+                return { success: false, error: 'Reset token has expired. Please request a new one.' };
+            }
+
+            // Validate new password
+            if (newPassword.length < 8) {
+                return { success: false, error: 'Password must be at least 8 characters' };
+            }
+
+            // Update user password
+            const users = JSON.parse(localStorage.getItem('vanstraUsers'));
+            const user = users[resetRequest.userId];
+            
+            if (!user) {
+                return { success: false, error: 'User not found' };
+            }
+
+            user.passwordHash = hashString(newPassword);
+            users[resetRequest.userId] = user;
+            localStorage.setItem('vanstraUsers', JSON.stringify(users));
+
+            // Remove used token
+            delete resetRequests[token];
+            localStorage.setItem('passwordResetRequests', JSON.stringify(resetRequests));
+
+            // Log the event
+            emit('password_reset_completed', { userId: resetRequest.userId, email: resetRequest.email, timestamp: new Date().toISOString() });
+
+            return { success: true, message: 'Password has been reset successfully. Please log in with your new password.' };
+        } catch (e) {
+            return { success: false, error: e.message };
+        }
+    }
+
+    function validateResetToken(token) {
+        try {
+            let resetRequests = JSON.parse(localStorage.getItem('passwordResetRequests') || '{}');
+            const resetRequest = resetRequests[token];
+
+            if (!resetRequest) {
+                return { valid: false, error: 'Invalid reset token' };
+            }
+
+            // Check if token has expired
+            if (new Date() > new Date(resetRequest.expiresAt)) {
+                delete resetRequests[token];
+                localStorage.setItem('passwordResetRequests', JSON.stringify(resetRequests));
+                return { valid: false, error: 'Reset token has expired' };
+            }
+
+            return { valid: true, email: resetRequest.email };
+        } catch (e) {
+            return { valid: false, error: e.message };
+        }
+    }
+
     // ==================== PUBLIC API ====================
 
     return {
@@ -789,6 +898,11 @@ const VanstraBank = (function() {
         updateProfile,
         updateAvatar,
         updateSecuritySettings,
+        
+        // Password Recovery
+        requestPasswordReset,
+        resetPasswordWithToken,
+        validateResetToken,
         
         // PIN
         verifyPin,
