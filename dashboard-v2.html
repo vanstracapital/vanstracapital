@@ -1059,18 +1059,17 @@
             loadUserData();
             checkAccountStatus();
             renderTransactions();
-            loadChatMessages();
             monitorAccountStatus();
             
-            // Listen for admin events and chat messages
+            // Chat: Use 3CX live chat widget instead
             VanstraBank.on('admin_reply', function(msg) {
                 if (msg.userId === currentUser.id) {
-                    addChatMessage(msg.message, 'admin');
+                    // addChatMessage(msg.message, 'admin'); - using 3CX widget now
                 }
             });
             VanstraBank.on('chat_message', function(msg) {
                 if (msg.userId === currentUser.id) {
-                    addChatMessage(msg.message, msg.from === 'admin' ? 'admin' : 'user');
+                    // addChatMessage(msg.message, msg.from === 'admin' ? 'admin' : 'user'); - using 3CX widget now
                 }
             });
         });
