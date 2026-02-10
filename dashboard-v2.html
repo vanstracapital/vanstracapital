@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dashboard - Vanstra Bank</title>
     <meta name="description" content="Your Vanstra Bank dashboard. View balances, transfer money, pay bills, and manage your finances.">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
+    }
     <!-- Custom Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,7 +21,9 @@
             --navy: #041225;
             --slate: #0B2A3F;
             --gold: #C89A3A;
-        }
+        }        ngrok http 5500        npx localtunnel --port 5500 --subdomain vanstra-dev
+        # open https://vanstra-dev.loca.lt (example)        # Close all Chrome windows first
+        Start-Process chrome -- " --user-data-dir=C:\temp\chrome-dev-profile --disable-web-security"
         
         body {
             font-family: 'Inter', sans-serif;
@@ -345,7 +344,7 @@
             display: flex;
             justify-content: space-around;
             padding: 0.5rem 0;
-            z-index: 100;
+            z-index: 50;
         }
         
         .nav-item {
@@ -1575,8 +1574,59 @@
         }
     </script>
 
-    <!-- 3CX Live Chat Widget - Real-time Updates -->
-    <call-us-selector phonesystem-url="https://1575.3cx.cloud" party="LiveChat962369"></call-us-selector>
+    <!-- 3CX Live Chat Widget (attempt real-time) -->
+    <call-us-selector phonesystem-url="https://1575.3cx.cloud" party="LiveChat962369" style="pointer-events:auto;
+        position:fixed;right:20px;bottom:20px;z-index:2147483646;
+        display:block;
+        "></call-us-selector>
+
+    <!-- Clickable fallback button (opens 3CX widget if available, otherwise opens 3CX page) -->
+    <a id="vanstra-chat-fallback" href="#" aria-label="Live Chat" style="position:fixed;right:20px;bottom:20px;z-index:2147483647;display:flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;background:#062f51;color:#ffffff;text-decoration:none;box-shadow:0 8px 24px rgba(6,47,81,0.24);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color:#fff">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </a>
+
+    <script>
+        // Try to open 3CX widget programmatically when fallback button is clicked.
+        function open3CXChat(event) {
+            if (event) event.preventDefault();
+            const trySelectors = [
+                'call-us',
+                'call-us-selector',
+                '#wp-live-chat-by-3CX',
+                '.tcx-callus',
+                '.tcx-callus-plate',
+                '.tcx-callus-toggle',
+                '.tcx-btn',
+                '.callus-button',
+            ];
+
+            for (const sel of trySelectors) {
+                const el = document.querySelector(sel);
+                if (!el) continue;
+                try {
+                    // If element uses shadow DOM, attempt to find an inner button
+                    if (el.shadowRoot) {
+                        const inner = el.shadowRoot.querySelector('button, [role="button"]');
+                        if (inner) { inner.click(); return true; }
+                    }
+                    // Try clicking the element itself
+                    el.click();
+                    return true;
+                } catch (e) {
+                    console.warn('3CX open attempt failed for', sel, e);
+                }
+            }
+
+            // If widget not present or couldn't be opened, open 3CX page as fallback
+            window.open('https://1575.3cx.cloud/LiveChat962369', '_blank', 'noopener');
+            return false;
+        }
+
+        document.getElementById('vanstra-chat-fallback').addEventListener('click', open3CXChat);
+    </script>
+
     <script defer src="https://downloads-global.3cx.com/downloads/livechatandtalk/v1/callus.js" id="tcx-callus-js" charset="utf-8"></script>
 </body>
 </html>
