@@ -29,9 +29,17 @@ if (useFileDb) {
     .catch((err) => console.log('MongoDB connection error:', err));
 }
 
-// Serve static assets (images, etc. for landing page)
+// Serve the static frontend from the repo root (one origin for site + API).
+// The frontend HTML/CSS/JS live one level up from /backend.
 const path = require('path');
-app.use('/resources', express.static(path.join(__dirname, '../resources')));
+
+// Never expose the backend folder over HTTP — that includes server source and
+// the runtime JSON store (backend/data/*.json holds users + password hashes).
+// (express.static already ignores dotfiles like .env / .git by default.)
+app.use('/backend', (req, res) => res.status(404).json({ message: 'Route not found' }));
+
+// Static frontend (index.html, *.html, config.js, main.js, resources/, ...)
+app.use(express.static(path.join(__dirname, '..')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));

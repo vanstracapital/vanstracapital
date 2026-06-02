@@ -1,6 +1,9 @@
 // Vanstra Capital - Main JavaScript
 // Handles animations, interactions, and dynamic content
 
+// API base: real backend on localhost during dev, same-origin '/api' when hosted.
+const MAIN_API_BASE = (['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:5000/api' : '/api');
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeAnimations();
     initializeParticles();
@@ -516,7 +519,7 @@ function showAdminLogin() {
         errorEl.classList.add('hidden');
         
         try {
-            const response = await fetch('http://localhost:5000/api/auth/login', {
+            const response = await fetch(`${MAIN_API_BASE}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: adminEmail, password })
@@ -566,7 +569,7 @@ function showAdminLogin() {
         errorEl.classList.add('hidden');
         
         try {
-            const response = await fetch('http://localhost:5000/api/auth/verify-otp', {
+            const response = await fetch(`${MAIN_API_BASE}/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tempToken: adminTempToken, otp, email: adminEmail })

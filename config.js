@@ -9,8 +9,10 @@
 // there.
 // ---------------------------------------------------------------------------
 
-// 👉 Set this to your deployed backend once you host it (leave blank if local-only):
-const PROD_API_BASE_URL = '';
+// 👉 Hosted backend URL. The site is served from the same origin as the API on
+//    Render, so a relative '/api' works without hardcoding the domain. (Use a full
+//    https://...onrender.com/api URL instead only if the frontend is hosted elsewhere.)
+const PROD_API_BASE_URL = '/api';
 
 const _host = (typeof location !== 'undefined' && location.hostname) || '';
 const _isLocal = _host === 'localhost' || _host === '127.0.0.1' || _host === '' || _host === '0.0.0.0';
