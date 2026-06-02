@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statement - Vanstra Bank</title>
+    <script>(function(){var t=localStorage.getItem('vanstraTheme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bank-ui.css">
+    <script src="bank-core-v2.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --navy:#041225; --slate:#0B2A3F; --gold:#C89A3A; }
+        body { font-family:'Inter',sans-serif; background:#F4F6F9; color:#1F2937; margin:0; padding:0 0 calc(80px + env(safe-area-inset-bottom, 0px)); overflow-x:hidden; }
+        h1,h2,h3,.section-title { font-family:'Poppins',sans-serif; }
+
+        /* Header */
+        .app-header { background:var(--navy); color:white; padding:0 1rem; position:sticky; top:0; z-index:50; height:60px; display:flex; align-items:center; }
+        .header-inner { display:flex; align-items:center; gap:0.75rem; width:100%; }
+        .back-btn { background:rgba(255,255,255,.1); border:none; border-radius:10px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; flex-shrink:0; }
+        .header-title { font-family:'Poppins',sans-serif; font-weight:700; font-size:1rem; color:white; flex:1; }
+        .header-action-btn { background:rgba(255,255,255,.1); border:none; border-radius:10px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; }
+
+        /* Summary card */
+        .summary-card { margin:1rem; border-radius:18px; background:linear-gradient(135deg,#1E2D6B 0%,#041225 100%); padding:1.25rem 1.5rem; color:white; position:relative; overflow:hidden; }
+        .summary-card::before { content:''; position:absolute; top:-40px; right:-40px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.04); }
+        .summary-card::after { content:''; position:absolute; bottom:-30px; right:20px; width:80px; height:80px; border-radius:50%; background:rgba(200,154,58,.1); }
+        .summary-period { font-size:0.78rem; color:rgba(255,255,255,.5); margin-bottom:0.25rem; }
+        .summary-amount { font-family:'Poppins',sans-serif; font-size:1.75rem; font-weight:700; color:white; margin:0.2rem 0; }
+        .summary-stats { display:flex; gap:1.5rem; margin-top:1rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,.1); }
+        .stat-item { flex:1; }
+        .stat-label { font-size:0.72rem; color:rgba(255,255,255,.45); margin-bottom:0.2rem; }
+        .stat-value { font-size:0.9rem; font-weight:600; }
+        .stat-value.credit { color:#6EE7B7; }
+        .stat-value.debit { color:#FCA5A5; }
+
+        /* Period selector */
+        .period-wrap { padding:0.75rem 1rem 0; }
+        .period-tabs { display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:0.25rem; scrollbar-width:none; }
+        .period-tabs::-webkit-scrollbar { display:none; }
+        .period-tab { flex-shrink:0; padding:0.4rem 0.875rem; border-radius:999px; border:1.5px solid #E5E7EB; background:white; font-size:0.8125rem; font-weight:500; color:#6B7280; cursor:pointer; transition:all .2s; white-space:nowrap; }
+        .period-tab.active { background:var(--navy); border-color:var(--navy); color:white; }
+
+        /* Filter bar */
+        .filter-bar { display:flex; align-items:center; justify-content:space-between; padding:0.75rem 1rem 0.5rem; }
+        .filter-bar-label { font-size:0.875rem; font-weight:600; color:#374151; }
+        .filter-btn { display:flex; align-items:center; gap:0.35rem; font-size:0.8125rem; font-weight:500; color:#6B7280; background:white; border:1.5px solid #E5E7EB; border-radius:8px; padding:0.35rem 0.75rem; cursor:pointer; }
+
+        /* Date group */
+        .date-group { margin:0.25rem 0; }
+        .date-group-header { padding:0.5rem 1rem; font-size:0.72rem; font-weight:600; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.05em; background:#F4F6F9; }
+
+        /* Transaction item */
+        .txn-row { display:flex; align-items:center; gap:0.875rem; padding:0.875rem 1rem; background:white; border-bottom:1px solid #F3F4F6; cursor:pointer; transition:background .15s; }
+        .txn-row:active { background:#F9FAFB; }
+        .txn-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .txn-info { flex:1; min-width:0; }
+        .txn-name { font-size:0.875rem; font-weight:600; color:#111827; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .txn-meta { font-size:0.75rem; color:#9CA3AF; margin-top:0.1rem; }
+        .txn-amount-col { text-align:right; flex-shrink:0; }
+        .txn-amount { font-size:0.9375rem; font-weight:700; }
+        .txn-amount.credit { color:#10B981; }
+        .txn-amount.debit { color:#1F2937; }
+        .txn-balance-after { font-size:0.72rem; color:#9CA3AF; margin-top:0.1rem; }
+
+        /* Empty state */
+        .empty-txn { text-align:center; padding:3rem 1.5rem; }
+        .empty-txn svg { color:#D1D5DB; margin-bottom:1rem; }
+        .empty-txn-title { font-weight:600; color:#374151; margin-bottom:0.35rem; }
+        .empty-txn-sub { font-size:0.875rem; color:#9CA3AF; }
+
+        /* Export sheet */
+        .export-option { display:flex; align-items:center; gap:0.875rem; padding:0.875rem 1.25rem; border-bottom:1px solid #F3F4F6; cursor:pointer; }
+        .export-option:active { background:#F9FAFB; }
+        .export-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .export-title { font-size:0.9rem; font-weight:600; color:#111827; }
+        .export-sub { font-size:0.75rem; color:#6B7280; margin-top:0.1rem; }
+
+        /* Bottom nav */
+        /* Bottom Navigation — from bank-ui.css */
+        .bottom-nav { z-index: 100; }
+
+        /* Inline style replacements */
+        .summary-balance-sub { font-size:0.75rem; color:rgba(255,255,255,.45); }
+        .stat-divider { width:1px; background:rgba(255,255,255,.1); }
+        .stat-value-white { color:white; }
+        .custom-date-wrap { display:none; padding:0.75rem 1rem; background:white; margin:0.5rem 1rem; border-radius:12px; border:1px solid #E5E7EB; }
+        .custom-date-row { display:flex; gap:0.75rem; align-items:center; }
+        .custom-date-col { flex:1; }
+        .custom-date-label { font-size:0.72rem; font-weight:600; color:#374151; display:block; margin-bottom:0.3rem; }
+        .custom-date-input { width:100%; padding:0.5rem; border:1.5px solid #E5E7EB; border-radius:8px; font-size:0.875rem; font-family:inherit; }
+        .export-desc { font-size:0.8125rem; color:#6B7280; padding:0 1.25rem 0.75rem; margin:0; }
+        .export-icon-red  { background:#FEF2F2; }
+        .export-icon-green{ background:#F0FDF4; }
+        .export-icon-blue { background:#EFF6FF; }
+        .export-chevron   { margin-left:auto; color:#9CA3AF; }
+        .export-option-last { border-bottom:none; }
+        .export-cancel-wrap { padding:1rem 1.25rem 0.5rem; }
+        .btn-full { width:100%; }
+        .filter-body { padding:0 1.25rem; }
+        .filter-section-label { font-size:0.78rem; font-weight:600; color:#374151; margin:0 0 0.5rem; }
+        .filter-chips-row { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+        .filter-amount-row { display:flex; gap:0.75rem; margin-bottom:1.5rem; }
+        .filter-amount-input { flex:1; padding:0.5rem; border:1.5px solid #E5E7EB; border-radius:8px; font-size:0.875rem; font-family:inherit; }
+        .filter-action-row { display:flex; gap:0.75rem; }
+        .btn-flex { flex:1; }
+        .toast-hidden { display:none; }
+
+        /* ── Desktop centering ── */
+        @media (min-width: 600px) {
+            body { max-width: 480px; margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,.08); }
+            .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); }
+        }
+
+        /* ── Small-phone overrides ── */
+        @media (max-width: 390px) {
+            .summary-card { margin: 0.75rem; padding: 1rem 1.25rem; }
+            .summary-amount { font-size: 1.5rem; }
+            .stat-value { font-size: 0.82rem; }
+            .txn-row { padding: 0.75rem 0.875rem; gap: 0.75rem; }
+            .txn-icon { width: 38px; height: 38px; border-radius: 10px; }
+            .txn-name { font-size: 0.8125rem; }
+            .txn-amount { font-size: 0.875rem; }
+        }
+
+        /* ===== Dark Theme ===== */
+        [data-theme="dark"] body { background: #0C1220; color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .period-tab { background: #182030; border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+        [data-theme="dark"] .filter-btn { background: #182030; border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+        [data-theme="dark"] .filter-bar-label { color: rgba(255,255,255,0.75); }
+        [data-theme="dark"] .date-group-header { background: #0C1220; color: rgba(255,255,255,0.35); }
+        [data-theme="dark"] .txn-row { background: #182030; border-bottom-color: rgba(255,255,255,0.06); }
+        [data-theme="dark"] .txn-row:active { background: rgba(255,255,255,0.05); }
+        [data-theme="dark"] .txn-name { color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .txn-amount.debit { color: rgba(255,255,255,0.85); }
+        [data-theme="dark"] .empty-txn-title { color: rgba(255,255,255,0.7); }
+        [data-theme="dark"] .export-option { border-bottom-color: rgba(255,255,255,0.07); }
+        [data-theme="dark"] .export-option:active { background: rgba(255,255,255,0.04); }
+        [data-theme="dark"] .export-title { color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .export-sub { color: rgba(255,255,255,0.5); }
+        [data-theme="dark"] .export-desc { color: rgba(255,255,255,0.5); }
+        [data-theme="dark"] .custom-date-wrap { background: #182030; border-color: rgba(255,255,255,0.1); }
+        [data-theme="dark"] .custom-date-label { color: rgba(255,255,255,0.7); }
+        [data-theme="dark"] .custom-date-input { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .filter-chip { background: #182030; border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.6); }
+        [data-theme="dark"] .filter-section-label { color: rgba(255,255,255,0.75); }
+        [data-theme="dark"] .filter-amount-input { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-inner">
+            <button type="button" class="back-btn" onclick="history.back()" aria-label="Back">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="header-title">Account Statement</span>
+            <button type="button" class="header-action-btn" onclick="openExportSheet()" aria-label="Export">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Summary card -->
+    <div class="summary-card">
+        <div class="summary-period" id="summaryPeriod">This Month</div>
+        <div class="summary-amount" id="summaryBalance">Loading...</div>
+        <div class="summary-balance-sub">Current Balance</div>
+        <div class="summary-stats">
+            <div class="stat-item">
+                <div class="stat-label">Money In</div>
+                <div class="stat-value credit" id="totalCredit">—</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-label">Money Out</div>
+                <div class="stat-value debit" id="totalDebit">—</div>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <div class="stat-label">Transactions</div>
+                <div class="stat-value stat-value-white" id="totalCount">—</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period tabs -->
+    <div class="period-wrap">
+        <div class="period-tabs" id="periodTabs">
+            <button type="button" class="period-tab active" onclick="setPeriod('this_month',this)">This Month</button>
+            <button type="button" class="period-tab" onclick="setPeriod('last_month',this)">Last Month</button>
+            <button type="button" class="period-tab" onclick="setPeriod('3_months',this)">3 Months</button>
+            <button type="button" class="period-tab" onclick="setPeriod('6_months',this)">6 Months</button>
+            <button type="button" class="period-tab" onclick="setPeriod('this_year',this)">This Year</button>
+            <button type="button" class="period-tab" onclick="setPeriod('custom',this)">Custom</button>
+        </div>
+    </div>
+
+    <!-- Custom date picker (hidden) -->
+    <div id="customDateWrap" class="custom-date-wrap">
+        <div class="custom-date-row">
+            <div class="custom-date-col">
+                <label class="custom-date-label" for="customFrom">From</label>
+                <input type="date" id="customFrom" class="custom-date-input" onchange="applyCustomRange()">
+            </div>
+            <div class="custom-date-col">
+                <label class="custom-date-label" for="customTo">To</label>
+                <input type="date" id="customTo" class="custom-date-input" onchange="applyCustomRange()">
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter + label bar -->
+    <div class="filter-bar">
+        <span class="filter-bar-label" id="txnListLabel">All Transactions</span>
+        <button type="button" class="filter-btn" onclick="openFilterSheet()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h18M7 12h10M11 20h2"/></svg>
+            Filter
+        </button>
+    </div>
+
+    <!-- Transaction list -->
+    <div id="txnList"></div>
+
+    <!-- Bottom nav -->
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <div class="nav-icon-wrap"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></div>
+            <span>Home</span>
+        </a>
+        <a href="cards-v2.html" class="nav-item">
+            <div class="nav-icon-wrap"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg></div>
+            <span>Cards</span>
+        </a>
+        <a href="statement.html" class="nav-item active">
+            <div class="nav-icon-wrap"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
+            <span>Statement</span>
+        </a>
+        <a href="wealth-v2.html" class="nav-item">
+            <div class="nav-icon-wrap"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div>
+            <span>Wealth</span>
+        </a>
+        <a href="profile-v2.html" class="nav-item">
+            <div class="nav-icon-wrap"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div>
+            <span>Profile</span>
+        </a>
+    </nav>
+
+    <!-- Export Sheet -->
+    <div id="exportSheet" class="modal-overlay" onclick="if(event.target===this)closeExportSheet()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">Export Statement</h3>
+                <button type="button" class="modal-close" aria-label="Close" title="Close" onclick="closeExportSheet()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <p class="export-desc">Download your <span id="exportPeriodLabel">statement</span> in your preferred format.</p>
+            <div class="export-option" onclick="exportStatement('pdf')">
+                <div class="export-icon export-icon-red">
+                    <svg width="20" height="20" fill="none" stroke="#EF4444" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <div class="export-title">PDF Statement</div>
+                    <div class="export-sub">Printable, formatted document</div>
+                </div>
+                <svg class="export-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+            <div class="export-option" onclick="exportStatement('csv')">
+                <div class="export-icon export-icon-green">
+                    <svg width="20" height="20" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                </div>
+                <div>
+                    <div class="export-title">CSV / Excel</div>
+                    <div class="export-sub">Spreadsheet-compatible data</div>
+                </div>
+                <svg class="export-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+            <div class="export-option export-option-last" onclick="shareStatement()">
+                <div class="export-icon export-icon-blue">
+                    <svg width="20" height="20" fill="none" stroke="#3B82F6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                </div>
+                <div>
+                    <div class="export-title">Share</div>
+                    <div class="export-sub">Send via email or message</div>
+                </div>
+                <svg class="export-chevron" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </div>
+            <div class="export-cancel-wrap">
+                <button type="button" class="btn btn-outline btn-full" onclick="closeExportSheet()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Sheet -->
+    <div id="filterSheet" class="modal-overlay" onclick="if(event.target===this)closeFilterSheet()">
+        <div class="modal-sheet">
+            <div class="modal-header">
+                <h3 class="modal-title">Filter Transactions</h3>
+                <button type="button" class="modal-close" aria-label="Close" title="Close" onclick="closeFilterSheet()">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="filter-body">
+                <p class="filter-section-label">Type</p>
+                <div class="filter-chips-row">
+                    <button type="button" class="filter-chip active" data-type="all" onclick="setTypeFilter('all',this)">All</button>
+                    <button type="button" class="filter-chip" data-type="credit" onclick="setTypeFilter('credit',this)">Money In</button>
+                    <button type="button" class="filter-chip" data-type="debit" onclick="setTypeFilter('debit',this)">Money Out</button>
+                    <button type="button" class="filter-chip" data-type="transfer" onclick="setTypeFilter('transfer',this)">Transfers</button>
+                </div>
+                <p class="filter-section-label">Amount Range</p>
+                <div class="filter-amount-row">
+                    <input type="number" id="minAmount" placeholder="Min" class="filter-amount-input" title="Minimum amount" aria-label="Minimum amount">
+                    <input type="number" id="maxAmount" placeholder="Max" class="filter-amount-input" title="Maximum amount" aria-label="Maximum amount">
+                </div>
+                <div class="filter-action-row">
+                    <button type="button" class="btn btn-outline btn-flex" onclick="resetFilters()">Reset</button>
+                    <button type="button" class="btn btn-primary btn-flex" onclick="applyFilters()">Apply</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast toast-hidden"></div>
+
+    <style>
+        .filter-chip { padding:0.35rem 0.875rem; border-radius:999px; border:1.5px solid #E5E7EB; background:white; font-size:0.8125rem; font-weight:500; color:#6B7280; cursor:pointer; transition:all .2s; }
+        .filter-chip.active { background:var(--navy); border-color:var(--navy); color:white; }
+    </style>
+
+    <script>
+        let currentUser = null;
+        let allTransactions = [];
+        let filteredTransactions = [];
+        let activePeriod = 'this_month';
+        let activeType = 'all';
+        let customFrom = null;
+        let customTo = null;
+        let minAmt = null;
+        let maxAmt = null;
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            if (!VanstraBank.isAuthenticated()) { window.location.href = 'login.html'; return; }
+            currentUser = VanstraBank.getCurrentUser();
+            allTransactions = (currentUser.transactions || []).slice().reverse();
+            document.getElementById('summaryBalance').textContent = VanstraBank.formatCurrency(currentUser.balance);
+            setPeriod('this_month', document.querySelector('.period-tab.active'));
+        }
+
+        function setPeriod(period, el) {
+            activePeriod = period;
+            document.querySelectorAll('.period-tab').forEach(t => t.classList.remove('active'));
+            if (el) el.classList.add('active');
+            const customWrap = document.getElementById('customDateWrap');
+            customWrap.style.display = (period === 'custom') ? 'block' : 'none';
+            if (period !== 'custom') applyFilters();
+            const labels = { this_month:'This Month', last_month:'Last Month', '3_months':'Last 3 Months', '6_months':'Last 6 Months', this_year:'This Year', custom:'Custom Range' };
+            document.getElementById('summaryPeriod').textContent = labels[period] || 'Statement';
+            document.getElementById('exportPeriodLabel').textContent = (labels[period]||'').toLowerCase() + ' statement';
+        }
+
+        function applyCustomRange() {
+            const from = document.getElementById('customFrom').value;
+            const to = document.getElementById('customTo').value;
+            if (from && to) { customFrom = new Date(from); customTo = new Date(to); applyFilters(); }
+        }
+
+        function setTypeFilter(type, el) {
+            activeType = type;
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        function getPeriodRange() {
+            const now = new Date();
+            let from, to = new Date();
+            if (activePeriod === 'this_month') {
+                from = new Date(now.getFullYear(), now.getMonth(), 1);
+            } else if (activePeriod === 'last_month') {
+                from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                to = new Date(now.getFullYear(), now.getMonth(), 0);
+            } else if (activePeriod === '3_months') {
+                from = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
+            } else if (activePeriod === '6_months') {
+                from = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
+            } else if (activePeriod === 'this_year') {
+                from = new Date(now.getFullYear(), 0, 1);
+            } else if (activePeriod === 'custom' && customFrom && customTo) {
+                from = customFrom; to = customTo;
+            } else {
+                from = new Date(0);
+            }
+            return { from, to };
+        }
+
+        function applyFilters() {
+            const { from, to } = getPeriodRange();
+            let txns = allTransactions.filter(t => {
+                const d = new Date(t.timestamp || t.date || 0);
+                if (d < from || d > to) return false;
+                if (activeType === 'credit' && t.type !== 'credit' && t.amount <= 0) return false;
+                if (activeType === 'debit' && (t.type === 'credit' || t.amount > 0)) return false;
+                if (activeType === 'transfer' && t.type !== 'transfer') return false;
+                const minAmt = parseFloat(document.getElementById('minAmount')?.value) || null;
+                const maxAmt = parseFloat(document.getElementById('maxAmount')?.value) || null;
+                const absAmt = Math.abs(t.amount || 0);
+                if (minAmt && absAmt < minAmt) return false;
+                if (maxAmt && absAmt > maxAmt) return false;
+                return true;
+            });
+            filteredTransactions = txns;
+            renderList(txns);
+            updateSummary(txns);
+            closeFilterSheet();
+        }
+
+        function resetFilters() {
+            activeType = 'all';
+            document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+            document.querySelector('[data-type="all"]').classList.add('active');
+            document.getElementById('minAmount').value = '';
+            document.getElementById('maxAmount').value = '';
+            applyFilters();
+        }
+
+        function updateSummary(txns) {
+            let credit = 0, debit = 0;
+            txns.forEach(t => {
+                const amt = t.amount || 0;
+                if (amt > 0 || t.type === 'credit') credit += Math.abs(amt);
+                else debit += Math.abs(amt);
+            });
+            document.getElementById('totalCredit').textContent = '+' + VanstraBank.formatCurrency(credit);
+            document.getElementById('totalDebit').textContent = '-' + VanstraBank.formatCurrency(debit);
+            document.getElementById('totalCount').textContent = txns.length;
+            document.getElementById('txnListLabel').textContent = txns.length + ' Transaction' + (txns.length !== 1 ? 's' : '');
+        }
+
+        function renderList(txns) {
+            const container = document.getElementById('txnList');
+            if (!txns.length) {
+                container.innerHTML = `<div class="empty-txn">
+                    <svg width="56" height="56" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                    <div class="empty-txn-title">No transactions found</div>
+                    <div class="empty-txn-sub">No transactions match your selected period or filters.</div>
+                </div>`;
+                return;
+            }
+
+            // Group by date
+            const groups = {};
+            txns.forEach(t => {
+                const d = new Date(t.timestamp || t.date || 0);
+                const key = formatDateKey(d);
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(t);
+            });
+
+            let html = '';
+            Object.keys(groups).forEach(dateKey => {
+                html += `<div class="date-group">
+                    <div class="date-group-header">${dateKey}</div>`;
+                groups[dateKey].forEach((t, i) => {
+                    const isCredit = (t.amount > 0) || t.type === 'credit';
+                    const amt = Math.abs(t.amount || 0);
+                    const sign = isCredit ? '+' : '-';
+                    const amtClass = isCredit ? 'credit' : 'debit';
+                    const iconBg = getIconBg(t.type || t.category);
+                    const iconSvg = getIconSvg(t.type || t.category);
+                    const desc = t.description || t.name || 'Transaction';
+                    const meta = t.reference || (t.category ? capitalize(t.category) : 'Transfer');
+                    const txnData = encodeURIComponent(JSON.stringify(t));
+                    html += `<div class="txn-row" onclick="openDetail(${JSON.stringify(t).replace(/"/g,'&quot;')})">
+                        <div class="txn-icon" style="background:${iconBg};">${iconSvg}</div>
+                        <div class="txn-info">
+                            <div class="txn-name">${escHtml(desc)}</div>
+                            <div class="txn-meta">${escHtml(meta)} · ${formatTime(new Date(t.timestamp||t.date||0))}</div>
+                        </div>
+                        <div class="txn-amount-col">
+                            <div class="txn-amount ${amtClass}">${sign}${VanstraBank.formatCurrency(amt)}</div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function openDetail(txn) {
+            localStorage.setItem('viewTransaction', JSON.stringify(txn));
+            window.location.href = 'transaction-detail.html';
+        }
+
+        function formatDateKey(d) {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+            const tDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+            if (tDate.getTime() === today.getTime()) return 'Today';
+            if (tDate.getTime() === yesterday.getTime()) return 'Yesterday';
+            return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+        }
+
+        function formatTime(d) {
+            return d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', hour12:true });
+        }
+
+        function getIconBg(type) {
+            const map = { credit:'#ECFDF5', deposit:'#ECFDF5', transfer:'#EFF6FF', debit:'#FEF2F2', payment:'#FEF2F2', bill:'#FFF7ED', withdrawal:'#FEF2F2', salary:'#ECFDF5' };
+            return map[type] || '#F3F4F6';
+        }
+        function getIconSvg(type) {
+            const color = { credit:'#10B981', deposit:'#10B981', transfer:'#3B82F6', debit:'#EF4444', payment:'#EF4444', bill:'#F97316', withdrawal:'#EF4444', salary:'#10B981' }[type] || '#6B7280';
+            const paths = {
+                credit: 'M12 4v16m8-8H4',
+                deposit: 'M12 4v16m8-8H4',
+                transfer: 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4',
+                debit: 'M20 12H4',
+                payment: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z',
+                bill: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+                salary: 'M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+            };
+            const d = paths[type] || 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z';
+            return `<svg width="18" height="18" fill="none" stroke="${color}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${d}"/></svg>`;
+        }
+        function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+
+        // Export
+        function openExportSheet() { document.getElementById('exportSheet').classList.add('active'); }
+        function closeExportSheet() { document.getElementById('exportSheet').classList.remove('active'); }
+        function openFilterSheet() { document.getElementById('filterSheet').classList.add('active'); }
+        function closeFilterSheet() { document.getElementById('filterSheet').classList.remove('active'); }
+
+        function exportStatement(format) {
+            closeExportSheet();
+            if (format === 'csv') {
+                const rows = [['Date','Description','Type','Amount','Reference']];
+                filteredTransactions.forEach(t => {
+                    rows.push([
+                        new Date(t.timestamp||t.date||0).toLocaleDateString(),
+                        t.description || t.name || '',
+                        t.type || '',
+                        t.amount || 0,
+                        t.reference || ''
+                    ]);
+                });
+                const csv = rows.map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'vanstra-statement.csv'; a.click();
+                URL.revokeObjectURL(url);
+                showToast('CSV downloaded');
+            } else if (format === 'pdf') {
+                window.print();
+                showToast('Opening print dialog...');
+            }
+        }
+
+        function shareStatement() {
+            closeExportSheet();
+            if (navigator.share) {
+                navigator.share({ title: 'Vanstra Statement', text: 'My Vanstra Bank statement' });
+            } else {
+                showToast('Share not supported on this device');
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            t.classList.add('show');
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.style.display='none'; }, 300); }, 2500);
+        }
+    </script>
+</body>
+</html>

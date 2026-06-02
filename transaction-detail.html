@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction - Vanstra Bank</title>
+    <script>(function(){var t=localStorage.getItem('vanstraTheme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');})()</script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="bank-ui.css">
+    <script src="bank-core-v2.js"></script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        :root { --navy:#041225; --slate:#0B2A3F; --gold:#C89A3A; }
+        body { font-family:'Inter',sans-serif; background:#F4F6F9; color:#1F2937; margin:0; padding:0 0 100px; }
+
+        .app-header { background:var(--navy); color:white; padding:0 1rem; position:sticky; top:0; z-index:50; height:60px; display:flex; align-items:center; }
+        .header-inner { display:flex; align-items:center; gap:0.75rem; width:100%; }
+        .back-btn { background:rgba(255,255,255,.1); border:none; border-radius:10px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; flex-shrink:0; }
+        .header-title { font-family:'Poppins',sans-serif; font-weight:700; font-size:1rem; color:white; flex:1; }
+        .header-action-btn { background:rgba(255,255,255,.1); border:none; border-radius:10px; width:36px; height:36px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:white; }
+
+        /* Hero amount section */
+        .amount-hero { text-align:center; padding:2.5rem 1.5rem 2rem; }
+        .txn-icon-hero { width:64px; height:64px; border-radius:20px; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; }
+        .amount-hero-value { font-family:'Poppins',sans-serif; font-size:2.25rem; font-weight:700; margin-bottom:0.3rem; }
+        .amount-hero-desc { font-size:0.9rem; color:#6B7280; }
+        .status-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.78rem; font-weight:600; padding:0.35rem 0.875rem; border-radius:999px; margin-top:0.75rem; }
+        .status-badge.success { background:#ECFDF5; color:#059669; }
+        .status-badge.pending { background:#FFFBEB; color:#D97706; }
+        .status-badge.failed { background:#FEF2F2; color:#DC2626; }
+
+        /* Receipt card */
+        .receipt-card { margin:0 1rem 1rem; background:white; border-radius:18px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.07); }
+        .receipt-header { padding:1rem 1.25rem; background:#F9FAFB; border-bottom:1px solid #F3F4F6; }
+        .receipt-header-label { font-size:0.72rem; font-weight:600; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.05em; }
+        .receipt-row { display:flex; align-items:flex-start; justify-content:space-between; padding:0.875rem 1.25rem; border-bottom:1px solid #F3F4F6; }
+        .receipt-row:last-child { border-bottom:none; }
+        .receipt-label { font-size:0.8125rem; color:#6B7280; flex-shrink:0; margin-right:1rem; }
+        .receipt-value { font-size:0.8125rem; font-weight:600; color:#111827; text-align:right; word-break:break-all; }
+        .receipt-value.monospace { font-family:'Courier New',monospace; font-size:0.8rem; letter-spacing:0.02em; }
+
+        /* Dashed divider (receipt perforation look) */
+        .perforation { position:relative; height:24px; background:white; display:flex; align-items:center; }
+        .perforation::before, .perforation::after { content:''; position:absolute; width:20px; height:20px; border-radius:50%; background:#F4F6F9; top:50%; transform:translateY(-50%); }
+        .perforation::before { left:-10px; }
+        .perforation::after { right:-10px; }
+        .perforation-line { flex:1; border-top:2px dashed #E5E7EB; margin:0 12px; }
+
+        /* Action buttons */
+        .action-strip { display:flex; gap:0.75rem; padding:0 1rem 1rem; }
+        .action-strip-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:0.5rem; padding:0.875rem 0.5rem; background:white; border:none; border-radius:14px; cursor:pointer; transition:background .15s; }
+        .action-strip-btn:active { background:#F3F4F6; }
+        .action-strip-btn .icon-wrap { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
+        .action-strip-btn span { font-size:0.75rem; font-weight:500; color:#374151; }
+
+        /* Note section */
+        .note-section { margin:0 1rem 1rem; background:white; border-radius:14px; padding:1rem 1.25rem; }
+        .note-label { font-size:0.78rem; font-weight:600; color:#374151; margin-bottom:0.5rem; }
+        .note-input { width:100%; border:1.5px solid #E5E7EB; border-radius:8px; padding:0.625rem; font-size:0.875rem; font-family:inherit; color:#374151; resize:none; outline:none; }
+        .note-input:focus { border-color:#1E2D6B; }
+        .note-save-btn { margin-top:0.5rem; font-size:0.8125rem; font-weight:600; color:#1E2D6B; background:none; border:none; cursor:pointer; padding:0; }
+
+        @media print {
+            .app-header, .action-strip, .note-section, .back-btn, .header-action-btn { display:none !important; }
+            body { background:white; padding:0; }
+            .receipt-card { box-shadow:none; margin:0; border-radius:0; }
+        }
+
+        /* Named replacements for inline styles */
+        .icon-wrap-blue   { background:#EFF6FF; }
+        .icon-wrap-green  { background:#F0FDF4; }
+        .icon-wrap-orange { background:#FFF7ED; }
+        .icon-wrap-red    { background:#FEF2F2; }
+        .perforation-inset { margin:0 1.25rem; }
+        .toast-hidden { display:none; }
+
+        /* ===== Dark Theme ===== */
+        [data-theme="dark"] body { background: #0C1220; color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .amount-hero-desc { color: rgba(255,255,255,0.5); }
+        [data-theme="dark"] .receipt-card { background: #182030; }
+        [data-theme="dark"] .receipt-header { background: rgba(255,255,255,0.04); border-bottom-color: rgba(255,255,255,0.07); }
+        [data-theme="dark"] .receipt-row { border-bottom-color: rgba(255,255,255,0.07); }
+        [data-theme="dark"] .receipt-label { color: rgba(255,255,255,0.45); }
+        [data-theme="dark"] .receipt-value { color: rgba(255,255,255,0.9); }
+        [data-theme="dark"] .perforation { background: #182030; }
+        [data-theme="dark"] .perforation::before,
+        [data-theme="dark"] .perforation::after { background: #0C1220; }
+        [data-theme="dark"] .perforation-line { border-top-color: rgba(255,255,255,0.1); }
+        [data-theme="dark"] .action-strip-btn { background: #182030; }
+        [data-theme="dark"] .action-strip-btn:active { background: rgba(255,255,255,0.08); }
+        [data-theme="dark"] .action-strip-btn span { color: rgba(255,255,255,0.7); }
+        [data-theme="dark"] .note-section { background: #182030; }
+        [data-theme="dark"] .note-label { color: rgba(255,255,255,0.6); }
+        [data-theme="dark"] .note-input { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); color: rgba(255,255,255,0.9); }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="header-inner">
+            <button type="button" class="back-btn" onclick="history.back()" aria-label="Back">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <span class="header-title">Transaction Details</span>
+            <button type="button" class="header-action-btn" onclick="shareReceipt()" aria-label="Share">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Amount hero -->
+    <div class="amount-hero" id="amountHero">
+        <div class="txn-icon-hero" id="txnIconHero"></div>
+        <div class="amount-hero-value" id="heroAmount">—</div>
+        <div class="amount-hero-desc" id="heroDesc">—</div>
+        <div id="heroBadge" class="status-badge success">
+            <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            Completed
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-strip">
+        <button type="button" class="action-strip-btn" onclick="window.print()">
+            <div class="icon-wrap icon-wrap-blue">
+                <svg width="18" height="18" fill="none" stroke="#3B82F6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            </div>
+            <span>Print</span>
+        </button>
+        <button type="button" class="action-strip-btn" onclick="downloadReceipt()">
+            <div class="icon-wrap icon-wrap-green">
+                <svg width="18" height="18" fill="none" stroke="#10B981" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            </div>
+            <span>Download</span>
+        </button>
+        <button type="button" class="action-strip-btn" onclick="shareReceipt()">
+            <div class="icon-wrap icon-wrap-orange">
+                <svg width="18" height="18" fill="none" stroke="#F97316" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+            </div>
+            <span>Share</span>
+        </button>
+        <button type="button" class="action-strip-btn" id="disputeBtn" onclick="raiseDispute()">
+            <div class="icon-wrap icon-wrap-red">
+                <svg width="18" height="18" fill="none" stroke="#EF4444" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <span>Dispute</span>
+        </button>
+    </div>
+
+    <!-- Receipt card -->
+    <div class="receipt-card" id="receiptCard">
+        <div class="receipt-header">
+            <div class="receipt-header-label">Transaction Receipt</div>
+        </div>
+        <div id="receiptRows"></div>
+
+        <!-- Perforation line -->
+        <div class="perforation perforation-inset">
+            <div class="perforation-line"></div>
+        </div>
+
+        <!-- Footer rows -->
+        <div id="receiptFooter"></div>
+    </div>
+
+    <!-- Personal note -->
+    <div class="note-section">
+        <div class="note-label">Personal Note</div>
+        <textarea id="personalNote" class="note-input" rows="2" placeholder="Add a note to this transaction..."></textarea>
+        <button type="button" class="note-save-btn" onclick="saveNote()">Save Note</button>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast toast-hidden"></div>
+
+    <script>
+        let txn = null;
+
+        document.addEventListener('DOMContentLoaded', init);
+
+        function init() {
+            if (!VanstraBank.isAuthenticated()) { window.location.href = 'login.html'; return; }
+            const raw = localStorage.getItem('viewTransaction');
+            if (!raw) { history.back(); return; }
+            try { txn = JSON.parse(raw); } catch(e) { history.back(); return; }
+            renderDetail(txn);
+            loadNote();
+        }
+
+        function renderDetail(t) {
+            const isCredit = (t.amount > 0) || t.type === 'credit';
+            const amt = Math.abs(t.amount || 0);
+            const fmtAmt = (isCredit ? '+' : '-') + VanstraBank.formatCurrency(amt);
+            const color = isCredit ? '#10B981' : '#111827';
+            const iconBg = isCredit ? '#ECFDF5' : '#FEF2F2';
+            const iconColor = isCredit ? '#10B981' : '#EF4444';
+            const iconPath = isCredit
+                ? 'M12 4v16m8-8H4'
+                : 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4';
+
+            document.getElementById('txnIconHero').style.background = iconBg;
+            document.getElementById('txnIconHero').innerHTML = `<svg width="28" height="28" fill="none" stroke="${iconColor}" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/></svg>`;
+            document.getElementById('heroAmount').style.color = color;
+            document.getElementById('heroAmount').textContent = fmtAmt;
+            document.getElementById('heroDesc').textContent = t.description || t.name || 'Transaction';
+
+            const status = t.status || 'completed';
+            const badge = document.getElementById('heroBadge');
+            badge.className = 'status-badge ' + (status === 'completed' ? 'success' : status === 'pending' ? 'pending' : 'failed');
+            const icons = { completed:'M5 13l4 4L19 7', pending:'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', failed:'M6 18L18 6M6 6l12 12' };
+            badge.innerHTML = `<svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="${icons[status]||icons.completed}"/></svg> ${capitalize(status)}`;
+
+            const d = new Date(t.timestamp || t.date || 0);
+            const dateStr = d.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+            const timeStr = d.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+
+            const rows = [
+                ['Date', dateStr],
+                ['Time', timeStr],
+                ['Description', t.description || t.name || 'Transaction'],
+                ['Type', capitalize(t.type || 'transfer')],
+                t.category ? ['Category', capitalize(t.category)] : null,
+                t.recipient ? ['Recipient', t.recipient] : null,
+                t.sender ? ['Sender', t.sender] : null,
+                t.fromAccount ? ['From Account', t.fromAccount] : null,
+                t.toAccount ? ['To Account', t.toAccount] : null,
+            ].filter(Boolean);
+
+            document.getElementById('receiptRows').innerHTML = rows.map(([label, val]) =>
+                `<div class="receipt-row"><span class="receipt-label">${escHtml(label)}</span><span class="receipt-value">${escHtml(val)}</span></div>`
+            ).join('');
+
+            const ref = t.reference || t.id || generateRef(t);
+            document.getElementById('receiptFooter').innerHTML = `
+                <div class="receipt-row"><span class="receipt-label">Reference No.</span><span class="receipt-value monospace">${escHtml(ref)}</span></div>
+                <div class="receipt-row"><span class="receipt-label">Amount</span><span class="receipt-value" style="color:${color};font-size:1rem;">${escHtml(fmtAmt)}</span></div>
+            `;
+        }
+
+        function generateRef(t) {
+            const ts = new Date(t.timestamp||t.date||0).getTime().toString(36).toUpperCase();
+            return 'VNS' + ts + Math.random().toString(36).substr(2,4).toUpperCase();
+        }
+
+        function loadNote() {
+            const key = 'txnNote_' + (txn?.id || txn?.reference || JSON.stringify(txn).length);
+            document.getElementById('personalNote').value = localStorage.getItem(key) || '';
+        }
+        function saveNote() {
+            const key = 'txnNote_' + (txn?.id || txn?.reference || JSON.stringify(txn).length);
+            localStorage.setItem(key, document.getElementById('personalNote').value);
+            showToast('Note saved');
+        }
+
+        function downloadReceipt() {
+            if (!txn) return;
+            const d = new Date(txn.timestamp||txn.date||0);
+            const lines = [
+                '==============================',
+                '       VANSTRA BANK',
+                '   Transaction Receipt',
+                '==============================',
+                'Date     : ' + d.toLocaleDateString(),
+                'Time     : ' + d.toLocaleTimeString(),
+                'Desc     : ' + (txn.description||txn.name||'Transaction'),
+                'Type     : ' + capitalize(txn.type||'transfer'),
+                'Amount   : ' + (txn.amount > 0 ? '+' : '-') + VanstraBank.formatCurrency(Math.abs(txn.amount||0)),
+                'Ref      : ' + (txn.reference||txn.id||generateRef(txn)),
+                '==============================',
+                'Status   : Completed',
+                '==============================',
+            ];
+            const blob = new Blob([lines.join('\n')], { type:'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'vanstra-receipt.txt'; a.click();
+            URL.revokeObjectURL(url);
+            showToast('Receipt downloaded');
+        }
+
+        function shareReceipt() {
+            if (!txn) return;
+            const text = `Vanstra Bank Receipt\n${txn.description||'Transaction'}: ${VanstraBank.formatCurrency(Math.abs(txn.amount||0))}\nRef: ${txn.reference||txn.id||'N/A'}`;
+            if (navigator.share) { navigator.share({ title:'Vanstra Receipt', text }); }
+            else { navigator.clipboard.writeText(text).then(() => showToast('Receipt copied to clipboard')).catch(() => showToast('Share not available')); }
+        }
+
+        function raiseDispute() {
+            showToast('Dispute form coming soon. Please contact support.');
+        }
+
+        function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : ''; }
+        function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            t.classList.add('show');
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => { t.style.display='none'; }, 300); }, 2500);
+        }
+    </script>
+</body>
+</html>

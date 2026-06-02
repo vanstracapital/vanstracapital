@@ -1,0 +1,30 @@
+# Render Blueprint — deploys the Vanstra Capital backend as a free web service.
+# In Render: New + → Blueprint → connect this repo. Render reads this file.
+# After it deploys, copy the service URL and put it in config.js (PROD_API_BASE_URL).
+services:
+  - type: web
+    name: vanstra-backend
+    runtime: node
+    rootDir: backend          # the Express app lives in /backend
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET        # auto-generated strong secret
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 24h
+      # --- Secrets: set these in the Render dashboard (sync:false = not stored here) ---
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASSWORD     # Gmail 16-char app password
+        sync: false
+      - key: FRONTEND_URL       # your GitHub Pages URL, e.g. https://USER.github.io/REPO
+        sync: false             # used to build password-reset email links

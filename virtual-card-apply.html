@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply Virtual Credit Card - Vanstra Bank</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        :root {
+            --navy: #041225;
+            --brand: #1E2D6B;
+            --indigo: #3730A3;
+            --gold: #C89A3A;
+            --bg: #F5F6FA;
+            --surface: #FFFFFF;
+            --text: #0F172A;
+            --muted: #64748B;
+            --border: #E5E7EB;
+            --primary-btn: #1E2D6B;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, .amt { font-family: 'Poppins', sans-serif; }
+        a { color: inherit; text-decoration: none; }
+        button { font-family: inherit; cursor: pointer; }
+
+        /* =================== APP HEADER =================== */
+        .app-header {
+            background: white;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 30;
+        }
+
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: none;
+            background: #F3F4F6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover { background: #E5E7EB; }
+
+        .header-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0;
+        }
+
+        /* =================== STEP INDICATOR =================== */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem 1.5rem 0.5rem;
+            gap: 0;
+        }
+
+        .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #D1D5DB;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+
+        .step-dot.active {
+            background: var(--brand);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        .step-dot.done { background: var(--brand); opacity: 0.4; }
+
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: #E5E7EB;
+            max-width: 28px;
+        }
+
+        .step-line.done { background: var(--brand); opacity: 0.4; }
+
+        /* =================== STEP SCREENS =================== */
+        .screen {
+            display: none;
+            flex: 1;
+            padding: 1.5rem 1.25rem 2rem;
+            flex-direction: column;
+        }
+
+        .screen.active { display: flex; }
+
+        /* =================== CARD PREVIEW =================== */
+        .card-preview-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 0.75rem 0 1.5rem;
+        }
+
+        .vc-card {
+            width: 100%;
+            max-width: 300px;
+            aspect-ratio: 1.586;
+            border-radius: 18px;
+            padding: 18px 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+            transition: background 0.4s, box-shadow 0.4s;
+            overflow: hidden;
+        }
+
+        .vc-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .vc-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .vc-card-logo {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+        }
+
+        .vc-card-nfc {
+            color: rgba(255,255,255,0.65);
+        }
+
+        .vc-card-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .vc-card-name {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.9);
+            letter-spacing: 0.02em;
+        }
+
+        .vc-card-network {
+            font-size: 0.6rem;
+            font-weight: 700;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.08em;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        /* Card colour themes */
+        .card-theme-purple  { background: linear-gradient(135deg, #2D2B55 0%, #3D3A7A 40%, #4B4898 100%); }
+        .card-theme-black   { background: linear-gradient(135deg, #111111 0%, #333333 100%); }
+        .card-theme-charcoal{ background: linear-gradient(135deg, #2C2C2C 0%, #4A4A4A 100%); }
+        .card-theme-red     { background: linear-gradient(135deg, #7F1D1D 0%, #B91C1C 100%); }
+        .card-theme-teal    { background: linear-gradient(135deg, #0F4C4C 0%, #1A6B6B 100%); }
+
+        /* =================== CONTENT CARDS =================== */
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .info-card-label {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin: 0 0 0.25rem;
+        }
+
+        .info-card-value {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .info-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .change-link {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--brand);
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .change-link:hover { text-decoration: underline; }
+
+        /* =================== ELIGIBILITY HEADER =================== */
+        .eligibility-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .eligibility-label {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin: 0 0 0.3rem;
+        }
+
+        .eligibility-amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+
+        /* =================== CREDIT LIMIT SLIDER =================== */
+        .limit-approved-box {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .limit-approved-text {
+            font-size: 0.875rem;
+            color: var(--muted);
+            line-height: 1.5;
+            margin: 0 0 0.5rem;
+        }
+
+        .limit-approved-amount {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+        }
+
+        .limit-control-card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .limit-control-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 1rem;
+        }
+
+        .limit-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .limit-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1.5px solid var(--border);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: var(--text);
+            transition: border-color 0.2s, background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .limit-btn:hover { border-color: var(--brand); background: rgba(30,45,107,0.05); }
+
+        .limit-value-display {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .limit-slider {
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            border-radius: 2px;
+            background: #E5E7EB;
+            outline: none;
+            margin-bottom: 0.75rem;
+        }
+
+        .limit-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--brand);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(30,45,107,0.3);
+        }
+
+        .limit-slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--brand);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(30,45,107,0.3);
+        }
+
+        .limit-minmax {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        /* =================== REPAYMENT SETTINGS =================== */
+        .repay-option {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+        }
+
+        .repay-option.selected {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(30,45,107,0.08);
+        }
+
+        .repay-radio {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            margin-top: 2px;
+            transition: border-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .repay-option.selected .repay-radio {
+            border-color: var(--brand);
+            background: var(--brand);
+        }
+
+        .repay-option.selected .repay-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+        }
+
+        .repay-content { flex: 1; }
+
+        .repay-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 0.5rem;
+        }
+
+        .repay-input-wrap {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .repay-option.selected .repay-input-wrap { display: block; }
+
+        .repay-input-label {
+            font-size: 0.75rem;
+            color: var(--muted);
+            padding: 0.6rem 0.85rem 0.2rem;
+        }
+
+        .repay-input {
+            width: 100%;
+            border: none;
+            outline: none;
+            padding: 0.25rem 0.85rem 0.6rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            background: transparent;
+        }
+
+        .repay-error {
+            font-size: 0.78rem;
+            color: #EF4444;
+            padding: 0.25rem 0.85rem 0.5rem;
+        }
+
+        .billing-section {
+            margin-top: 1.25rem;
+        }
+
+        .billing-label-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 0.5rem;
+        }
+
+        .date-input-wrap {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 0.875rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .date-input-wrap input {
+            border: none;
+            outline: none;
+            background: transparent;
+            font-size: 0.95rem;
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+
+        /* =================== ACCOUNT SELECTION =================== */
+        .account-option {
+            background: white;
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .account-option.selected {
+            border-color: var(--brand);
+            box-shadow: 0 0 0 3px rgba(30,45,107,0.06);
+        }
+
+        .account-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #1A1A2E;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .account-info { flex: 1; }
+
+        .account-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0 0 0.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .account-num {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin: 0;
+        }
+
+        .primary-badge {
+            font-size: 0.65rem;
+            font-weight: 700;
+            background: var(--brand);
+            color: white;
+            padding: 0.15rem 0.45rem;
+            border-radius: 999px;
+            letter-spacing: 0.02em;
+        }
+
+        .other-bank-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 1.5px solid var(--brand);
+            border-radius: 16px;
+            background: white;
+            color: var(--brand);
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .other-bank-btn:hover { background: rgba(30,45,107,0.04); }
+
+        /* =================== CARD DESIGN SELECTION =================== */
+        .design-name-display {
+            text-align: center;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 1rem;
+        }
+
+        .color-swatches {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .color-swatch {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: border-color 0.2s, transform 0.2s;
+            outline: none;
+        }
+
+        .color-swatch.active {
+            border-color: white;
+            outline: 3px solid var(--brand);
+            transform: scale(1.1);
+        }
+
+        /* =================== SUCCESS SCREEN =================== */
+        .success-screen {
+            text-align: center;
+            padding: 2rem 1.25rem;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.25rem;
+        }
+
+        .success-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin: 0 0 0.5rem;
+        }
+
+        .success-sub {
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin: 0 0 2rem;
+        }
+
+        /* =================== BOTTOM BUTTON =================== */
+        .bottom-action {
+            padding: 1.25rem;
+            background: white;
+            border-top: 1px solid var(--border);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .primary-btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 14px;
+            border: none;
+            background: var(--primary-btn);
+            color: white;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .primary-btn:hover { opacity: 0.9; }
+        .primary-btn:active { transform: scale(0.98); }
+        .primary-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+        .secondary-btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            background: white;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 0.75rem;
+            transition: background 0.2s;
+        }
+
+        .secondary-btn:hover { background: #F9FAFB; }
+
+        /* =================== CHECKBOX ROW =================== */
+        .checkbox-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            background: white;
+            border-radius: 14px;
+            padding: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .checkbox-row input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--brand);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .checkbox-row label {
+            font-size: 0.84rem;
+            color: var(--muted);
+            line-height: 1.45;
+        }
+
+        /* =================== TOAST =================== */
+        .toast {
+            position: fixed;
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            padding: 0.85rem 1.25rem;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success { background: #10B981; }
+        .toast.error   { background: #EF4444; }
+        .toast.info    { background: #3B82F6; }
+
+        /* =================== LOADING =================== */
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .loading-overlay.active { display: flex; }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #E5E7EB;
+            border-top-color: var(--brand);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .section-title-sm {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: 0 0 0.75rem;
+        }
+
+        @media (max-width: 380px) {
+            .vc-card { max-width: 260px; }
+            .limit-value-display { font-size: 1.6rem; }
+        }
+
+        /* Screen slide-in transition */
+        @keyframes screenFadeIn {
+            from { opacity: 0; transform: translateX(14px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        .screen.active { animation: screenFadeIn 0.22s ease; }
+
+        /* Step content headings */
+        .step-heading        { font-size:1rem; font-weight:700; color:var(--text); margin:0 0 1rem; }
+        .step-subheading     { font-size:0.9rem; font-weight:600; color:var(--muted); margin:0 0 1rem; }
+        .step-heading-center { font-size:1rem; font-weight:700; color:var(--text); text-align:center; margin:0 0 1.25rem; }
+        .section-title-sm-center { text-align:center; margin-bottom:0.5rem; }
+
+        /* Error: hidden by default, shown via JS */
+        .repay-error { display:none; }
+
+        /* Checkbox row top spacing */
+        .checkbox-row.mt { margin-top:1.25rem; }
+
+        /* Color swatch fills */
+        .swatch-red      { background:#B91C1C; }
+        .swatch-black    { background:#111111; }
+        .swatch-charcoal { background:#3D3A7A; }
+        .swatch-purple   { background:#4B4898; }
+        .swatch-teal     { background:#0F4C4C; }
+
+        /* Success screen */
+        .success-preview-wrap { margin-bottom:1.5rem; }
+        .success-detail-card  { text-align:left; }
+        .success-row      { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; }
+        .success-row-last { display:flex; justify-content:space-between; align-items:center; }
+        .success-label    { color:var(--muted); font-size:0.85rem; }
+        .success-value    { font-weight:700; }
+
+        /* Loading overlay text */
+        .loading-text { font-size:0.9rem; color:var(--muted); }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="app-header">
+        <button class="back-btn" id="backBtn" onclick="goBack()" aria-label="Go back" title="Go back">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+        </button>
+        <h1 class="header-title">Apply Virtual Credit Card</h1>
+    </header>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator" id="stepIndicator">
+        <div class="step-dot active" id="dot-0"></div>
+        <div class="step-line" id="line-0"></div>
+        <div class="step-dot" id="dot-1"></div>
+        <div class="step-line" id="line-1"></div>
+        <div class="step-dot" id="dot-2"></div>
+        <div class="step-line" id="line-2"></div>
+        <div class="step-dot" id="dot-3"></div>
+        <div class="step-line" id="line-3"></div>
+        <div class="step-dot" id="dot-4"></div>
+    </div>
+
+    <!-- ======================== STEP 0: ELIGIBILITY ======================== -->
+    <section class="screen active" id="step-0">
+        <div class="eligibility-box">
+            <p class="eligibility-label">You are eligible for</p>
+            <p class="eligibility-amount amt" id="eligibilityAmount">€100,000</p>
+        </div>
+
+        <div class="card-preview-wrap">
+            <div class="vc-card card-theme-charcoal" id="cardPreview0">
+                <div class="vc-card-top">
+                    <div class="vc-card-logo">BANK<br>LOGO</div>
+                    <svg class="vc-card-nfc" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M8.5 19A7.5 7.5 0 1 0 12 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 8.5A3.5 3.5 0 1 0 15.5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="vc-card-bottom">
+                    <div class="vc-card-name" id="cardName0">Your Name</div>
+                    <div class="vc-card-network">CARD<br>NETWORK</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-row">
+                <div>
+                    <p class="info-card-label">Credit limit</p>
+                    <p class="info-card-value amt" id="creditLimitDisplay0">€50,000</p>
+                </div>
+                <button class="change-link" onclick="goToStep(1)">Change</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== STEP 1: CHANGE CREDIT LIMIT ======================== -->
+    <section class="screen" id="step-1">
+        <div class="limit-approved-box">
+            <p class="limit-approved-text">You are approved for virtual credit card with maximum limit of</p>
+            <p class="limit-approved-amount amt">€100,000</p>
+        </div>
+
+        <div class="limit-control-card">
+            <p class="limit-control-title">Change credit limit</p>
+            <p class="section-title-sm section-title-sm-center">Credit limit</p>
+
+            <div class="limit-row">
+                <button class="limit-btn" onclick="adjustLimit(-5000)" aria-label="Decrease credit limit" title="Decrease">−</button>
+                <div class="limit-value-display" id="limitValueDisplay">50,000</div>
+                <button class="limit-btn" onclick="adjustLimit(5000)" aria-label="Increase credit limit" title="Increase">+</button>
+            </div>
+
+            <input
+                type="range"
+                class="limit-slider"
+                id="limitSlider"
+                min="5000"
+                max="100000"
+                step="1000"
+                value="50000"
+                oninput="onSliderChange(this.value)"
+            />
+            <div class="limit-minmax">
+                <span>Min €5,000</span>
+                <span>Max €100,000</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== STEP 2: REPAYMENT SETTINGS ======================== -->
+    <section class="screen" id="step-2">
+        <p class="step-heading">Repayment settings</p>
+
+        <!-- Option A: Minimum amount due -->
+        <div class="repay-option selected" id="repayOpt-min" onclick="selectRepayOption('min')">
+            <div class="repay-radio"></div>
+            <div class="repay-content">
+                <p class="repay-title">Minimum amount due</p>
+                <div class="repay-input-wrap">
+                    <p class="repay-input-label">% of total outstanding</p>
+                    <input
+                        class="repay-input"
+                        id="minPercentInput"
+                        type="number"
+                        min="10"
+                        max="100"
+                        value="10"
+                        oninput="validateMinPercent()"
+                    />
+                    <p class="repay-error" id="minPercentError">Percent cannot be less than 10</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Option B: 100% -->
+        <div class="repay-option" id="repayOpt-full" onclick="selectRepayOption('full')">
+            <div class="repay-radio"></div>
+            <div class="repay-content">
+                <p class="repay-title">100% of total outstanding</p>
+            </div>
+        </div>
+
+        <!-- Billing date -->
+        <div class="billing-section">
+            <p class="billing-label-text">Set billing date</p>
+            <div class="date-input-wrap">
+                <input type="date" id="billingDate" value="2023-04-15" />
+                <svg width="20" height="20" fill="none" stroke="#9CA3AF" viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="1.5"/>
+                    <path stroke-width="1.5" stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== STEP 3: REPAYMENT METHOD ======================== -->
+    <section class="screen" id="step-3">
+        <p class="step-subheading">Choose repayment method</p>
+
+        <div class="account-option selected" id="acc-salary" onclick="selectAccount('salary')">
+            <div class="account-icon">V</div>
+            <div class="account-info">
+                <p class="account-name">
+                    Salary Account
+                    <span class="primary-badge">Primary</span>
+                </p>
+                <p class="account-num" id="salaryAccNum">11122XXXXXXX3519</p>
+            </div>
+        </div>
+
+        <div class="account-option" id="acc-saving" onclick="selectAccount('saving')">
+            <div class="account-icon">V</div>
+            <div class="account-info">
+                <p class="account-name">General Saving Account</p>
+                <p class="account-num" id="savingAccNum">01XXXXXXXX4758</p>
+            </div>
+        </div>
+
+        <button class="other-bank-btn" onclick="showToast('Other bank account coming soon', 'info')">
+            User other bank account
+        </button>
+
+        <div class="checkbox-row mt">
+            <input type="checkbox" id="autoDebitCheck" checked />
+            <label for="autoDebitCheck">
+                Yes I would like to have my account automatically debited each month for my credit card payment
+            </label>
+        </div>
+    </section>
+
+    <!-- ======================== STEP 4: CARD DESIGN ======================== -->
+    <section class="screen" id="step-4">
+        <p class="step-heading-center">Select card design</p>
+
+        <div class="card-preview-wrap">
+            <div class="vc-card card-theme-charcoal" id="cardPreview4">
+                <div class="vc-card-top">
+                    <div class="vc-card-logo">BANK<br>LOGO</div>
+                    <svg class="vc-card-nfc" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                        <path d="M8.5 19A7.5 7.5 0 1 0 12 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M12 8.5A3.5 3.5 0 1 0 15.5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="vc-card-bottom">
+                    <div class="vc-card-name" id="cardName4">Your Name</div>
+                    <div class="vc-card-network">CARD<br>NETWORK</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="design-name-display" id="designNameDisplay">Purple Paradise</div>
+
+        <div class="color-swatches">
+            <button class="color-swatch swatch-red" data-theme="red" data-name="Crimson Flame" onclick="selectDesign(this)" title="Crimson Flame" aria-label="Crimson Flame"></button>
+            <button class="color-swatch swatch-black" data-theme="black" data-name="Midnight Black" onclick="selectDesign(this)" title="Midnight Black" aria-label="Midnight Black"></button>
+            <button class="color-swatch swatch-charcoal" data-theme="charcoal" data-name="Slate Dusk" onclick="selectDesign(this)" title="Slate Dusk" aria-label="Slate Dusk"></button>
+            <button class="color-swatch swatch-purple active" data-theme="purple" data-name="Purple Paradise" onclick="selectDesign(this)" title="Purple Paradise" aria-label="Purple Paradise"></button>
+            <button class="color-swatch swatch-teal" data-theme="teal" data-name="Ocean Teal" onclick="selectDesign(this)" title="Ocean Teal" aria-label="Ocean Teal"></button>
+        </div>
+    </section>
+
+    <!-- ======================== STEP 5: SUCCESS ======================== -->
+    <section class="screen" id="step-5">
+        <div class="success-screen">
+            <div class="success-icon">
+                <svg width="40" height="40" fill="none" stroke="#059669" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <h2 class="success-title">Card Applied!</h2>
+            <p class="success-sub">Your virtual credit card has been successfully applied. It will be active within minutes.</p>
+
+            <div class="card-preview-wrap success-preview-wrap">
+                <div class="vc-card card-theme-purple" id="cardPreviewSuccess">
+                    <div class="vc-card-top">
+                        <div class="vc-card-logo">BANK<br>LOGO</div>
+                        <svg class="vc-card-nfc" width="22" height="22" viewBox="0 0 24 24" fill="none">
+                            <path d="M8.5 19A7.5 7.5 0 1 0 12 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="M12 8.5A3.5 3.5 0 1 0 15.5 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <circle cx="12" cy="12" r="1" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="vc-card-bottom">
+                        <div class="vc-card-name" id="cardNameSuccess">Your Name</div>
+                        <div class="vc-card-network">CARD<br>NETWORK</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card success-detail-card">
+                <div class="success-row">
+                    <span class="success-label">Credit Limit</span>
+                    <span class="success-value" id="successLimitDisplay">€50,000</span>
+                </div>
+                <div class="success-row">
+                    <span class="success-label">Repayment</span>
+                    <span class="success-value" id="successRepayDisplay">Min 10%</span>
+                </div>
+                <div class="success-row-last">
+                    <span class="success-label">Repayment Account</span>
+                    <span class="success-value" id="successAccDisplay">Salary Account</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== BOTTOM ACTION ======================== -->
+    <div class="bottom-action" id="bottomAction">
+        <button class="primary-btn" id="mainActionBtn" onclick="handleMainAction()">Continue</button>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <span class="loading-text">Processing...</span>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script src="bank-core-v2.js"></script>
+    <script>
+        // ==================== STATE ====================
+        const MAX_LIMIT = 100000;
+        const MIN_LIMIT = 5000;
+        const STEP_SIZE = 1000;
+        const MAX_ELIGIBLE = 100000;
+
+        let currentStep = 0;
+        const TOTAL_STEPS = 5;
+
+        let state = {
+            creditLimit: 50000,
+            repayType: 'min',       // 'min' | 'full'
+            minPercent: 10,
+            billingDate: '2023-04-15',
+            selectedAccount: 'salary',
+            selectedDesign: 'purple',
+            designName: 'Purple Paradise',
+            autoDebit: true,
+        };
+
+        // ==================== INIT ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof VanstraBank !== 'undefined' && !VanstraBank.isAuthenticated()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            initUserData();
+            updateSliderGradient();
+        });
+
+        function initUserData() {
+            if (typeof VanstraBank === 'undefined') return;
+            const user = VanstraBank.getCurrentUser();
+            if (!user) return;
+
+            const firstName = user.fullName.split(' ')[0];
+            document.querySelectorAll('[id^="cardName"]').forEach(el => el.textContent = firstName);
+
+            // Mask account numbers
+            const accNum = user.accountNumber || '01XXXXXXXX0000';
+            const masked = accNum.slice(0, 2) + 'XXXXXXXX' + accNum.slice(-4);
+            document.getElementById('salaryAccNum').textContent = '11122XXXXXXX' + accNum.slice(-4);
+            document.getElementById('savingAccNum').textContent = masked;
+            document.getElementById('qrAccountNumber') && (document.getElementById('qrAccountNumber').textContent = accNum);
+
+            // Determine eligibility based on balance
+            const eligibleAmount = Math.min(user.balance * 2, MAX_ELIGIBLE);
+            document.getElementById('eligibilityAmount').textContent = formatEUR(eligibleAmount);
+            document.getElementById('creditLimitDisplay0').textContent = formatEUR(state.creditLimit);
+        }
+
+        // ==================== NAVIGATION ====================
+        function goBack() {
+            if (currentStep === 0) {
+                window.location.href = 'dashboard.html';
+            } else if (currentStep === 5) {
+                window.location.href = 'dashboard.html';
+            } else {
+                goToStep(currentStep - 1);
+            }
+        }
+
+        function goToStep(step) {
+            document.getElementById('step-' + currentStep).classList.remove('active');
+            currentStep = step;
+            document.getElementById('step-' + currentStep).classList.add('active');
+            updateStepIndicator();
+            updateBottomButton();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateStepIndicator() {
+            for (let i = 0; i < TOTAL_STEPS; i++) {
+                const dot = document.getElementById('dot-' + i);
+                dot.className = 'step-dot';
+                if (i < currentStep) dot.classList.add('done');
+                else if (i === currentStep) dot.classList.add('active');
+
+                if (i < TOTAL_STEPS - 1) {
+                    const line = document.getElementById('line-' + i);
+                    line.className = 'step-line';
+                    if (i < currentStep) line.classList.add('done');
+                }
+            }
+
+            // Hide step indicator on success screen
+            document.getElementById('stepIndicator').style.display = currentStep === 5 ? 'none' : 'flex';
+        }
+
+        function updateBottomButton() {
+            const btn = document.getElementById('mainActionBtn');
+            if (currentStep === 4) {
+                btn.textContent = 'Continue';
+            } else if (currentStep === 5) {
+                btn.textContent = 'Go to Dashboard';
+            } else {
+                btn.textContent = 'Continue';
+            }
+        }
+
+        function handleMainAction() {
+            if (currentStep === 1) {
+                // Update credit limit on step 0 display
+                document.getElementById('creditLimitDisplay0').textContent = formatEUR(state.creditLimit);
+                goToStep(0);
+                return;
+            }
+
+            if (currentStep === 2) {
+                // Validate repayment percent
+                if (state.repayType === 'min') {
+                    const val = parseInt(document.getElementById('minPercentInput').value) || 0;
+                    if (val < 10) {
+                        showError('minPercentError');
+                        return;
+                    }
+                    state.minPercent = val;
+                }
+            }
+
+            if (currentStep === 4) {
+                // Apply card
+                applyCard();
+                return;
+            }
+
+            if (currentStep === 5) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            goToStep(currentStep + 1);
+        }
+
+        // ==================== STEP 1: CREDIT LIMIT ====================
+        function adjustLimit(delta) {
+            let newVal = state.creditLimit + delta;
+            newVal = Math.max(MIN_LIMIT, Math.min(MAX_LIMIT, newVal));
+            state.creditLimit = newVal;
+            document.getElementById('limitValueDisplay').textContent = newVal.toLocaleString();
+            document.getElementById('limitSlider').value = newVal;
+            updateSliderGradient();
+        }
+
+        function onSliderChange(value) {
+            const snapped = Math.round(value / STEP_SIZE) * STEP_SIZE;
+            state.creditLimit = snapped;
+            document.getElementById('limitValueDisplay').textContent = snapped.toLocaleString();
+            updateSliderGradient();
+        }
+
+        function updateSliderGradient() {
+            const slider = document.getElementById('limitSlider');
+            if (!slider) return;
+            const pct = ((state.creditLimit - MIN_LIMIT) / (MAX_LIMIT - MIN_LIMIT)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--brand) 0%, var(--brand) ${pct}%, #E5E7EB ${pct}%, #E5E7EB 100%)`;
+        }
+
+        // ==================== STEP 2: REPAYMENT ====================
+        function selectRepayOption(type) {
+            state.repayType = type;
+            document.getElementById('repayOpt-min').classList.toggle('selected', type === 'min');
+            document.getElementById('repayOpt-full').classList.toggle('selected', type === 'full');
+        }
+
+        function validateMinPercent() {
+            const val = parseInt(document.getElementById('minPercentInput').value) || 0;
+            const err = document.getElementById('minPercentError');
+            if (val < 10) {
+                err.style.display = 'block';
+            } else {
+                err.style.display = 'none';
+                state.minPercent = val;
+            }
+        }
+
+        // ==================== STEP 3: ACCOUNT ====================
+        function selectAccount(type) {
+            state.selectedAccount = type;
+            document.getElementById('acc-salary').classList.toggle('selected', type === 'salary');
+            document.getElementById('acc-saving').classList.toggle('selected', type === 'saving');
+        }
+
+        // ==================== STEP 4: DESIGN ====================
+        const themeClasses = ['card-theme-purple', 'card-theme-black', 'card-theme-charcoal', 'card-theme-red', 'card-theme-teal'];
+
+        function selectDesign(el) {
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+            state.selectedDesign = el.dataset.theme;
+            state.designName = el.dataset.name;
+            document.getElementById('designNameDisplay').textContent = state.designName;
+
+            // Update card previews
+            const cards = [document.getElementById('cardPreview4'), document.getElementById('cardPreviewSuccess')];
+            cards.forEach(card => {
+                if (!card) return;
+                themeClasses.forEach(c => card.classList.remove(c));
+                card.classList.add('card-theme-' + state.selectedDesign);
+            });
+        }
+
+        // ==================== APPLY ====================
+        function applyCard() {
+            const loadingEl = document.getElementById('loadingOverlay');
+            loadingEl.classList.add('active');
+
+            setTimeout(() => {
+                loadingEl.classList.remove('active');
+
+                // Save virtual card to localStorage
+                if (typeof VanstraBank !== 'undefined') {
+                    const user = VanstraBank.getCurrentUser();
+                    if (user) {
+                        const cards = JSON.parse(localStorage.getItem('vanstraVirtualCards') || '{}');
+                        if (!cards[user.id]) cards[user.id] = [];
+                        cards[user.id].push({
+                            id: 'VCC-' + Date.now(),
+                            type: 'credit',
+                            creditLimit: state.creditLimit,
+                            repayType: state.repayType,
+                            minPercent: state.repayType === 'min' ? state.minPercent : 100,
+                            billingDate: document.getElementById('billingDate').value,
+                            repayAccount: state.selectedAccount,
+                            design: state.selectedDesign,
+                            designName: state.designName,
+                            autoDebit: document.getElementById('autoDebitCheck').checked,
+                            cardNumber: '4' + Array(15).fill(0).map(() => Math.floor(Math.random()*10)).join(''),
+                            expiry: '12/28',
+                            cvv: Math.floor(100 + Math.random()*900).toString(),
+                            status: 'active',
+                            issuedAt: new Date().toISOString(),
+                        });
+                        localStorage.setItem('vanstraVirtualCards', JSON.stringify(cards));
+                    }
+                }
+
+                // Update success screen
+                document.getElementById('successLimitDisplay').textContent = formatEUR(state.creditLimit);
+                document.getElementById('successRepayDisplay').textContent = state.repayType === 'full'
+                    ? '100% Outstanding'
+                    : 'Min ' + state.minPercent + '%';
+                document.getElementById('successAccDisplay').textContent = state.selectedAccount === 'salary'
+                    ? 'Salary Account'
+                    : 'General Saving Account';
+
+                // Apply design to success card
+                const successCard = document.getElementById('cardPreviewSuccess');
+                themeClasses.forEach(c => successCard.classList.remove(c));
+                successCard.classList.add('card-theme-' + state.selectedDesign);
+
+                goToStep(5);
+            }, 1800);
+        }
+
+        // ==================== HELPERS ====================
+        function formatEUR(amount) {
+            return '€' + Math.round(amount).toLocaleString('en-EU');
+        }
+
+        function showError(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.display = 'block';
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

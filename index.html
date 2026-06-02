@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanstra Capital — Premium Online Banking & Wealth Management</title>
+    <meta name="description" content="Experience elite banking with Vanstra Capital. High-yield accounts, instant transfers, and comprehensive wealth management. Secure, innovative, designed for success.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/typed.js/2.0.12/typed.min.js"></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #041225;
+            --slate: #0B2A3F;
+            --brand: #1E2D6B;
+            --gold: #C89A3A;
+            --gold-light: #E6B547;
+            --gold-dim: rgba(200,154,58,0.15);
+            --soft-white: #F7F8FA;
+            --text-body: #374151;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --white: #FFFFFF;
+            --transition: 0.22s ease;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--soft-white);
+            color: var(--text-body);
+            overflow-x: hidden;
+        }
+
+        .serif { font-family: 'Playfair Display', serif; }
+        .poppins { font-family: 'Poppins', sans-serif; }
+
+        /* ── NAV ── */
+        .nav {
+            position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+            background: rgba(4,18,37,0.92);
+            -webkit-backdrop-filter: blur(14px);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            transition: background var(--transition);
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            padding: 0 1.25rem;
+            height: 64px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .nav-logo { display: flex; align-items: center; gap: 0.625rem; text-decoration: none; }
+        .nav-logo-mark {
+            width: 36px; height: 36px; border-radius: 9px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .nav-logo-mark svg { width: 20px; height: 20px; }
+        .nav-logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.125rem; color: #fff; }
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a {
+            color: rgba(255,255,255,0.78); font-size: 0.875rem; font-weight: 500;
+            text-decoration: none; position: relative; transition: color var(--transition);
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -4px; left: 0; width: 0; height: 1.5px;
+            background: var(--gold); transition: width var(--transition);
+        }
+        .nav-links a:hover { color: #fff; }
+        .nav-links a:hover::after { width: 100%; }
+        .nav-actions { display: flex; align-items: center; gap: 0.75rem; }
+        .btn-ghost {
+            padding: 0.5rem 1.125rem; border-radius: 8px;
+            border: 1.5px solid rgba(200,154,58,0.55); color: var(--gold);
+            font-size: 0.875rem; font-weight: 600; text-decoration: none;
+            transition: all var(--transition); background: transparent; cursor: pointer;
+        }
+        .btn-ghost:hover { background: var(--gold-dim); border-color: var(--gold); }
+        .btn-gold {
+            padding: 0.5rem 1.25rem; border-radius: 8px;
+            background: var(--gold); color: var(--navy);
+            font-size: 0.875rem; font-weight: 700; text-decoration: none;
+            transition: all var(--transition); border: none; cursor: pointer;
+        }
+        .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(200,154,58,0.35); }
+        .hamburger {
+            display: none; flex-direction: column; gap: 5px;
+            background: none; border: none; cursor: pointer; padding: 4px;
+        }
+        .hamburger span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: all 0.25s; }
+        .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .hamburger.open span:nth-child(2) { opacity: 0; }
+        .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+        .mobile-menu {
+            display: none; flex-direction: column;
+            background: rgba(4,18,37,0.97); border-top: 1px solid rgba(255,255,255,0.08);
+            padding: 1rem 1.25rem 1.5rem;
+        }
+        .mobile-menu.open { display: flex; }
+        .mobile-menu a {
+            color: rgba(255,255,255,0.8); font-size: 1rem; font-weight: 500;
+            text-decoration: none; padding: 0.75rem 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .mobile-menu a:last-of-type { border-bottom: none; }
+        .mobile-menu .mobile-btns { display: flex; gap: 0.75rem; margin-top: 1rem; }
+        .mobile-menu .mobile-btns a { flex: 1; text-align: center; border-bottom: none; padding: 0.625rem 0; }
+
+        @media (max-width: 767px) {
+            .nav-links, .nav-actions { display: none; }
+            .hamburger { display: flex; }
+        }
+
+        /* ── HERO ── */
+        .hero {
+            min-height: 100vh; padding-top: 64px;
+            background: linear-gradient(140deg, var(--navy) 0%, #0a1f3d 55%, #071929 100%);
+            display: flex; align-items: center;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background:
+                radial-gradient(ellipse 600px 500px at 70% 50%, rgba(30,45,107,0.45) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 300px at 20% 80%, rgba(200,154,58,0.08) 0%, transparent 60%);
+        }
+        .hero-grid-bg {
+            position: absolute; inset: 0; opacity: 0.04;
+            background-image: linear-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.8) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+        .hero-inner {
+            position: relative; z-index: 2;
+            max-width: 1200px; margin: 0 auto; padding: 5rem 1.25rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+        }
+        .hero-eyebrow {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(200,154,58,0.12); border: 1px solid rgba(200,154,58,0.3);
+            border-radius: 100px; padding: 0.3rem 0.875rem;
+            color: var(--gold); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 1.5rem;
+        }
+        .hero-eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.4rem, 5vw, 3.75rem); font-weight: 700;
+            color: #fff; line-height: 1.15; margin-bottom: 1.5rem;
+        }
+        .hero h1 .typed-wrap { color: var(--gold); display: block; min-height: 1.2em; }
+        .hero-sub {
+            color: rgba(255,255,255,0.65); font-size: 1.0625rem; line-height: 1.7;
+            max-width: 480px; margin-bottom: 2.5rem;
+        }
+        .hero-cta { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem; }
+        .btn-hero-primary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.875rem 2rem; border-radius: 10px;
+            background: var(--gold); color: var(--navy);
+            font-weight: 700; font-size: 1rem; text-decoration: none;
+            transition: all var(--transition);
+        }
+        .btn-hero-primary:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,154,58,0.4); }
+        .btn-hero-secondary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.875rem 2rem; border-radius: 10px;
+            border: 1.5px solid rgba(255,255,255,0.25); color: #fff;
+            font-weight: 600; font-size: 1rem; text-decoration: none;
+            transition: all var(--transition); background: transparent;
+        }
+        .btn-hero-secondary:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.4); }
+        .hero-trust { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .trust-pill {
+            display: flex; align-items: center; gap: 0.4rem;
+            background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 100px; padding: 0.35rem 0.875rem;
+            color: rgba(255,255,255,0.75); font-size: 0.78rem; font-weight: 500;
+        }
+        .trust-pill svg { width: 13px; height: 13px; stroke: var(--gold); flex-shrink: 0; }
+
+        /* ── PHONE MOCKUP ── */
+        .hero-visual { display: flex; justify-content: center; align-items: center; }
+        .phone-shell {
+            width: 280px; background: #0d1b2e;
+            border-radius: 36px; padding: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05),
+                        inset 0 1px 0 rgba(255,255,255,0.07);
+            position: relative;
+        }
+        .phone-notch {
+            width: 80px; height: 20px; background: #0d1b2e;
+            border-radius: 0 0 14px 14px; margin: 0 auto 8px;
+            border: 1px solid rgba(255,255,255,0.08); border-top: none;
+            position: relative; z-index: 1;
+        }
+        .phone-screen {
+            background: linear-gradient(160deg, #0a1628 0%, #071220 100%);
+            border-radius: 28px; overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .phone-header {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--brand) 100%);
+            padding: 1.25rem 1rem 1.5rem;
+        }
+        .phone-header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
+        .ph-logo { font-family: 'Playfair Display', serif; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.9); }
+        .ph-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 0.6rem; font-weight: 700; color: var(--navy); }
+        .ph-label { font-size: 0.62rem; color: rgba(255,255,255,0.5); margin-bottom: 0.25rem; }
+        .ph-balance { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; color: #fff; line-height: 1; }
+        .ph-balance-cents { font-size: 1rem; }
+        .ph-change { font-size: 0.62rem; color: #4ade80; margin-top: 0.25rem; }
+
+        .phone-body { padding: 0.875rem; }
+        .ph-actions { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.5rem; margin-bottom: 0.875rem; }
+        .ph-action {
+            display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+            background: rgba(255,255,255,0.05); border-radius: 10px; padding: 0.5rem 0.25rem;
+        }
+        .ph-action-icon {
+            width: 28px; height: 28px; border-radius: 8px;
+            background: var(--gold-dim); display: flex; align-items: center; justify-content: center;
+        }
+        .ph-action-icon svg { width: 14px; height: 14px; stroke: var(--gold); }
+        .ph-action span { font-size: 0.52rem; color: rgba(255,255,255,0.5); text-align: center; }
+
+        .ph-section-label { font-size: 0.6rem; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+        .ph-txn { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .ph-txn:last-child { border-bottom: none; }
+        .ph-txn-icon { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 0.65rem; }
+        .ph-txn-info { flex: 1; min-width: 0; }
+        .ph-txn-name { font-size: 0.62rem; font-weight: 600; color: rgba(255,255,255,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ph-txn-date { font-size: 0.55rem; color: rgba(255,255,255,0.35); }
+        .ph-txn-amount { font-size: 0.65rem; font-weight: 700; }
+        .ph-txn-amount.credit { color: #4ade80; }
+        .ph-txn-amount.debit { color: rgba(255,255,255,0.7); }
+
+        .phone-glow {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%,-50%);
+            width: 200px; height: 200px; border-radius: 50%;
+            background: radial-gradient(ellipse, rgba(200,154,58,0.2), transparent 70%);
+            pointer-events: none; z-index: -1;
+        }
+
+        /* ── STATS ── */
+        .stats-strip {
+            background: var(--navy);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .stats-inner {
+            max-width: 1200px; margin: 0 auto; padding: 0 1.25rem;
+            display: grid; grid-template-columns: repeat(4,1fr);
+        }
+        .stat-item {
+            padding: 2rem 1.5rem; text-align: center;
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-num { font-family: 'Playfair Display', serif; font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; margin-bottom: 0.375rem; }
+        .stat-label { font-size: 0.8125rem; color: rgba(255,255,255,0.5); font-weight: 500; }
+
+        /* ── SECTIONS ── */
+        section { padding: 5rem 1.25rem; }
+        .section-inner { max-width: 1200px; margin: 0 auto; }
+        .section-tag {
+            display: inline-block; font-size: 0.72rem; font-weight: 700;
+            color: var(--gold); text-transform: uppercase; letter-spacing: 0.1em;
+            margin-bottom: 0.75rem;
+        }
+        .section-title { font-family: 'Playfair Display', serif; font-size: clamp(1.75rem,3.5vw,2.5rem); font-weight: 700; color: var(--navy); line-height: 1.2; margin-bottom: 1rem; }
+        .section-sub { font-size: 1.0625rem; color: var(--text-muted); max-width: 540px; line-height: 1.7; }
+        .text-center { text-align: center; }
+        .section-sub.centered { margin: 0 auto; }
+
+        /* ── PRODUCTS ── */
+        .products-bg { background: #fff; }
+        .products-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 3.5rem; }
+        .product-card {
+            border-radius: 20px; padding: 2rem;
+            border: 1px solid var(--border);
+            background: #fff;
+            transition: all 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .product-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease;
+        }
+        .product-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(0,0,0,0.1); }
+        .product-card:hover::before { transform: scaleX(1); }
+        .product-icon {
+            width: 56px; height: 56px; border-radius: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        .product-icon svg { width: 26px; height: 26px; stroke: #fff; stroke-width: 1.8; }
+        .product-card h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--navy); margin-bottom: 0.75rem; }
+        .product-card p { font-size: 0.9375rem; color: var(--text-muted); line-height: 1.65; margin-bottom: 1.5rem; }
+        .product-metric { margin-bottom: 1.75rem; }
+        .product-metric .value { font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+        .product-metric .label { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.25rem; }
+        .btn-card {
+            display: block; text-align: center; padding: 0.75rem;
+            border-radius: 10px; background: var(--navy); color: #fff;
+            font-weight: 600; font-size: 0.9375rem; text-decoration: none;
+            transition: all var(--transition);
+        }
+        .btn-card:hover { background: var(--brand); }
+
+        /* ── FEATURES ── */
+        .features-bg { background: var(--soft-white); }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: center; }
+        .feature-list { list-style: none; display: flex; flex-direction: column; gap: 1.5rem; margin-top: 2rem; }
+        .feature-item { display: flex; align-items: flex-start; gap: 1rem; }
+        .feature-check {
+            width: 36px; height: 36px; border-radius: 10px;
+            background: var(--gold-dim); border: 1px solid rgba(200,154,58,0.25);
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+        }
+        .feature-check svg { width: 16px; height: 16px; stroke: var(--gold); stroke-width: 2.5; }
+        .feature-item h4 { font-weight: 600; color: var(--navy); margin-bottom: 0.25rem; font-size: 0.9375rem; }
+        .feature-item p { font-size: 0.875rem; color: var(--text-muted); line-height: 1.6; }
+
+        .feature-visual {
+            background: #fff; border-radius: 24px; padding: 2rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.07);
+            border: 1px solid var(--border);
+        }
+        .feature-visual h4 { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 0.375rem; }
+        .feature-visual p { font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 1.5rem; }
+        .chart-bars { display: flex; align-items: flex-end; gap: 0.5rem; height: 140px; }
+        .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.375rem; }
+        .bar { width: 100%; border-radius: 6px 6px 0 0; background: var(--gold-dim); transition: height 0.6s ease; position: relative; overflow: hidden; }
+        .bar::after { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold), var(--gold-light)); opacity: 0.85; }
+        .bar-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 500; }
+        .chart-legend { display: flex; gap: 1.25rem; margin-top: 1rem; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; color: var(--text-muted); }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* ── HOW IT WORKS ── */
+        .how-bg { background: #fff; }
+        .steps-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem; margin-top: 3.5rem; position: relative; }
+        .steps-grid::before {
+            content: ''; position: absolute; top: 2rem; left: calc(16.66% + 1rem); right: calc(16.66% + 1rem);
+            height: 1px; background: repeating-linear-gradient(90deg, var(--gold) 0, var(--gold) 6px, transparent 6px, transparent 14px);
+        }
+        .step-card { text-align: center; padding: 1rem; }
+        .step-num {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Playfair Display', serif; font-size: 1.25rem; font-weight: 700; color: var(--navy);
+            margin: 0 auto 1.5rem; position: relative; z-index: 1;
+            box-shadow: 0 4px 16px rgba(200,154,58,0.35);
+        }
+        .step-card h3 { font-family: 'Playfair Display', serif; font-size: 1.125rem; font-weight: 700; color: var(--navy); margin-bottom: 0.75rem; }
+        .step-card p { font-size: 0.9rem; color: var(--text-muted); line-height: 1.65; }
+
+        /* ── TESTIMONIALS ── */
+        .testimonials-bg { background: var(--soft-white); }
+        .testimonials-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 3.5rem; }
+        .testimonial-card {
+            background: #fff; border-radius: 20px; padding: 1.75rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .testimonial-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.1); }
+        .testimonial-stars { display: flex; gap: 3px; margin-bottom: 1rem; }
+        .testimonial-stars svg { width: 16px; height: 16px; fill: var(--gold); }
+        .testimonial-text { font-size: 0.9375rem; color: var(--text-body); line-height: 1.7; margin-bottom: 1.5rem; font-style: italic; }
+        .testimonial-author { display: flex; align-items: center; gap: 0.75rem; }
+        .author-avatar {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.875rem; color: var(--navy); flex-shrink: 0;
+        }
+        .author-name { font-weight: 600; color: var(--navy); font-size: 0.9375rem; }
+        .author-role { font-size: 0.8125rem; color: var(--text-muted); }
+
+        /* ── CTA ── */
+        .cta-section {
+            background: linear-gradient(135deg, var(--navy) 0%, var(--brand) 100%);
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .cta-section::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 700px 400px at 50% 50%, rgba(200,154,58,0.1), transparent);
+        }
+        .cta-section h2 { font-family: 'Playfair Display', serif; font-size: clamp(1.75rem,3.5vw,2.5rem); font-weight: 700; color: #fff; margin-bottom: 1rem; position: relative; }
+        .cta-section p { color: rgba(255,255,255,0.65); font-size: 1.0625rem; max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.7; position: relative; }
+        .cta-btns { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; position: relative; }
+        .btn-cta-primary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.9375rem 2.25rem; border-radius: 10px;
+            background: var(--gold); color: var(--navy);
+            font-weight: 700; font-size: 1rem; text-decoration: none;
+            transition: all var(--transition);
+        }
+        .btn-cta-primary:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 10px 30px rgba(200,154,58,0.4); }
+        .btn-cta-secondary {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            padding: 0.9375rem 2.25rem; border-radius: 10px;
+            border: 1.5px solid rgba(255,255,255,0.3); color: #fff;
+            font-weight: 600; font-size: 1rem; text-decoration: none;
+            transition: all var(--transition); background: transparent;
+        }
+        .btn-cta-secondary:hover { background: rgba(255,255,255,0.08); }
+
+        /* ── FOOTER ── */
+        footer { background: #0a0f1a; color: rgba(255,255,255,0.6); }
+        .footer-inner { max-width: 1200px; margin: 0 auto; padding: 4rem 1.25rem 2rem; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+        .footer-brand p { font-size: 0.875rem; line-height: 1.7; margin-top: 1rem; max-width: 280px; }
+        .footer-col h4 { color: #fff; font-weight: 600; font-size: 0.9375rem; margin-bottom: 1.25rem; }
+        .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.625rem; }
+        .footer-col ul li a { color: rgba(255,255,255,0.5); font-size: 0.875rem; text-decoration: none; transition: color var(--transition); }
+        .footer-col ul li a:hover { color: #fff; }
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.07); padding-top: 1.5rem;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: gap;
+            font-size: 0.8125rem;
+        }
+        .footer-bottom p { margin: 0; }
+        .footer-admin {
+            background: none; border: none; cursor: pointer;
+            width: 28px; height: 28px; opacity: 0.2;
+            transition: opacity var(--transition); padding: 0;
+        }
+        .footer-admin:hover { opacity: 0.6; }
+        .footer-admin svg { width: 100%; height: 100%; stroke: rgba(255,255,255,0.7); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1024px) {
+            .hero-inner { gap: 2.5rem; }
+            .features-grid { gap: 3rem; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+        }
+        @media (max-width: 768px) {
+            .hero-inner { grid-template-columns: 1fr; text-align: center; padding: 3.5rem 1.25rem; }
+            .hero-sub { margin-left: auto; margin-right: auto; }
+            .hero-cta { justify-content: center; }
+            .hero-trust { justify-content: center; }
+            .hero-visual { order: -1; }
+            .phone-shell { width: 240px; }
+            .ph-balance { font-size: 1.35rem; }
+            .stats-inner { grid-template-columns: repeat(2,1fr); }
+            .stat-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            .stat-item:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.06); }
+            .stat-item:nth-last-child(-n+2) { border-bottom: none; }
+            .products-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+            .steps-grid::before { display: none; }
+            .testimonials-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+            .footer-grid { grid-template-columns: 1fr 1fr; gap: 2rem; }
+            .footer-brand { grid-column: 1 / -1; }
+            .footer-bottom { flex-direction: column; gap: 0.75rem; text-align: center; }
+        }
+        @media (max-width: 480px) {
+            section { padding: 3.5rem 1rem; }
+            .hero-inner { padding: 3rem 1rem; }
+            .stats-inner { grid-template-columns: 1fr 1fr; }
+            .footer-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── UTILITY CLASSES (replaces inline styles) ── */
+        .phone-wrap { position: relative; }
+        .ph-balance-suffix { font-size: 0.9rem; }
+        .ph-txn-icon-green { background: rgba(74,222,128,0.12); }
+        .ph-txn-icon-gold { background: rgba(200,154,58,0.12); }
+        .ph-txn-icon-blue { background: rgba(96,165,250,0.12); }
+        .section-sub-flush { margin-bottom: 0; }
+        .bar-y1 { height: 28%; }
+        .bar-y2 { height: 42%; }
+        .bar-y3 { height: 57%; }
+        .bar-y4 { height: 68%; }
+        .bar-y5 { height: 79%; }
+        .bar-y6 { height: 91%; }
+        .bar-y7 { height: 100%; }
+        .legend-dot-gold { background: var(--gold); }
+        .legend-dot-gray { background: #E5E7EB; }
+        .chart-summary {
+            margin-top: 1.25rem; padding: 1rem;
+            background: var(--soft-white); border-radius: 12px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .chart-summary-right { text-align: right; }
+        .chart-summary-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .chart-summary-value { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: var(--navy); }
+        .chart-summary-interest { font-size: 1.25rem; font-weight: 700; color: var(--gold); }
+        .avatar-gold { background: linear-gradient(135deg, #C89A3A, #E6B547); }
+        .avatar-brand { background: linear-gradient(135deg, #1E2D6B, #3B4FB0); }
+        .avatar-slate { background: linear-gradient(135deg, #0B2A3F, #1a5276); }
+        .footer-logo { margin-bottom: 1rem; display: inline-flex; }
+        .footer-legal { margin-top: 1.25rem; font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+        .demo-disclaimer {
+            margin-top: 2rem; padding: 1rem 1.25rem;
+            background: rgba(200,154,58,0.08);
+            border: 1px solid rgba(200,154,58,0.28);
+            border-radius: 12px;
+            font-size: 0.8rem; line-height: 1.6;
+            color: rgba(255,255,255,0.6);
+            text-align: center;
+        }
+        .demo-disclaimer strong { color: var(--gold); font-weight: 600; letter-spacing: 0.02em; }
+    </style>
+</head>
+<body>
+
+<!-- ── NAVIGATION ── -->
+<nav class="nav" id="mainNav">
+    <div class="nav-inner">
+        <a href="index.html" class="nav-logo">
+            <div class="nav-logo-mark">
+                <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5.5 6 L12 19.5 L18.5 6" stroke="#041225" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="18.5" cy="6" r="1.9" fill="#041225"/>
+                </svg>
+            </div>
+            <span class="nav-logo-text">Vanstra Capital</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="products.html">Products</a>
+            <a href="about.html">About</a>
+            <a href="faq.html">FAQ</a>
+            <a href="contact.html">Contact</a>
+        </div>
+
+        <div class="nav-actions">
+            <a href="login.html" class="btn-ghost">Login</a>
+            <a href="signup.html" class="btn-gold">Open Account</a>
+        </div>
+
+        <button type="button" class="hamburger" id="hamburger" aria-label="Toggle menu">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html">Home</a>
+        <a href="products.html">Products</a>
+        <a href="about.html">About</a>
+        <a href="faq.html">FAQ</a>
+        <a href="contact.html">Contact</a>
+        <div class="mobile-btns">
+            <a href="login.html" class="btn-ghost">Login</a>
+            <a href="signup.html" class="btn-gold">Open Account</a>
+        </div>
+    </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero" id="home">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-inner">
+        <div class="hero-text">
+            <div class="hero-eyebrow">
+                <span class="hero-eyebrow-dot"></span>
+                Premium Banking Platform
+            </div>
+            <h1>
+                Elite Banking for
+                <span class="typed-wrap"><span id="heroTyped"></span></span>
+            </h1>
+            <p class="hero-sub">
+                Experience modern private banking with high-yield accounts up to 4.85% APY,
+                instant global transfers, and dedicated wealth management — all in one secure platform.
+            </p>
+            <div class="hero-cta">
+                <a href="signup.html" class="btn-hero-primary">
+                    Open Your Account
+                    <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+                <a href="products.html" class="btn-hero-secondary">
+                    Explore Products
+                </a>
+            </div>
+            <div class="hero-trust">
+                <div class="trust-pill">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                    Bank-Grade Security
+                </div>
+                <div class="trust-pill">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                    256-bit Encryption
+                </div>
+                <div class="trust-pill">
+                    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    24/7 Support
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="phone-wrap">
+                <div class="phone-glow"></div>
+                <div class="phone-shell">
+                    <div class="phone-notch"></div>
+                    <div class="phone-screen">
+                        <div class="phone-header">
+                            <div class="phone-header-top">
+                                <span class="ph-logo">Vanstra Capital</span>
+                                <div class="ph-avatar">JD</div>
+                            </div>
+                            <div class="ph-label">Total Balance</div>
+                            <div class="ph-balance">$127,<span class="ph-balance-cents">450</span><span class="ph-balance-suffix">.00</span></div>
+                            <div class="ph-change">▲ +$2,340.00 this month</div>
+                        </div>
+                        <div class="phone-body">
+                            <div class="ph-actions">
+                                <div class="ph-action">
+                                    <div class="ph-action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg></div>
+                                    <span>Send</span>
+                                </div>
+                                <div class="ph-action">
+                                    <div class="ph-action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+                                    <span>Receive</span>
+                                </div>
+                                <div class="ph-action">
+                                    <div class="ph-action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+                                    <span>Cards</span>
+                                </div>
+                                <div class="ph-action">
+                                    <div class="ph-action-icon"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                                    <span>Wealth</span>
+                                </div>
+                            </div>
+                            <div class="ph-section-label">Recent Activity</div>
+                            <div class="ph-txn">
+                                <div class="ph-txn-icon ph-txn-icon-green">💰</div>
+                                <div class="ph-txn-info"><div class="ph-txn-name">Salary Deposit</div><div class="ph-txn-date">Today, 09:14</div></div>
+                                <div class="ph-txn-amount credit">+$8,500</div>
+                            </div>
+                            <div class="ph-txn">
+                                <div class="ph-txn-icon ph-txn-icon-gold">🏪</div>
+                                <div class="ph-txn-info"><div class="ph-txn-name">Whole Foods</div><div class="ph-txn-date">Yesterday</div></div>
+                                <div class="ph-txn-amount debit">-$184</div>
+                            </div>
+                            <div class="ph-txn">
+                                <div class="ph-txn-icon ph-txn-icon-blue">✈️</div>
+                                <div class="ph-txn-info"><div class="ph-txn-name">Wire Transfer</div><div class="ph-txn-date">May 14</div></div>
+                                <div class="ph-txn-amount debit">-$2,000</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── STATS ── -->
+<div class="stats-strip">
+    <div class="stats-inner">
+        <div class="stat-item">
+            <div class="stat-num">$2.4B+</div>
+            <div class="stat-label">Assets Under Management</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">4.85%</div>
+            <div class="stat-label">High-Yield APY</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">99.9%</div>
+            <div class="stat-label">Uptime Guarantee</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">24/7</div>
+            <div class="stat-label">Live Support</div>
+        </div>
+    </div>
+</div>
+
+<!-- ── PRODUCTS ── -->
+<section class="products-bg">
+    <div class="section-inner">
+        <div class="text-center">
+            <span class="section-tag">Our Products</span>
+            <h2 class="section-title">Premium Banking Solutions</h2>
+            <p class="section-sub centered">A comprehensive suite of financial products designed to grow your wealth and simplify your banking experience.</p>
+        </div>
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/></svg>
+                </div>
+                <h3>High-Yield Savings</h3>
+                <p>Earn more on every dollar with our market-leading rates. No minimum balance, no hidden fees — just consistent growth.</p>
+                <div class="product-metric">
+                    <div class="value">4.85%</div>
+                    <div class="label">Annual Percentage Yield</div>
+                </div>
+                <a href="products.html" class="btn-card">Learn More</a>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                </div>
+                <h3>Instant Transfers</h3>
+                <p>Send money globally in seconds. Our advanced payment rails eliminate delays — domestic or international.</p>
+                <div class="product-metric">
+                    <div class="value">&lt;3s</div>
+                    <div class="label">Average Transfer Time</div>
+                </div>
+                <a href="products.html" class="btn-card">Learn More</a>
+            </div>
+            <div class="product-card">
+                <div class="product-icon">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                </div>
+                <h3>Wealth Management</h3>
+                <p>Personalized investment strategies with dedicated advisors. Build long-term wealth with institutional-grade tools.</p>
+                <div class="product-metric">
+                    <div class="value">$100K+</div>
+                    <div class="label">Minimum Portfolio</div>
+                </div>
+                <a href="products.html" class="btn-card">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section class="features-bg">
+    <div class="section-inner">
+        <div class="features-grid">
+            <div>
+                <span class="section-tag">Security & Innovation</span>
+                <h2 class="section-title">Built for Trust, Designed for Speed</h2>
+                <p class="section-sub section-sub-flush">Enterprise-grade security infrastructure with the seamless UX of modern fintech.</p>
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <div class="feature-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <div><h4>256-bit AES Encryption</h4><p>Every transaction and data point is protected with bank-grade encryption standards.</p></div>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <div><h4>Multi-Factor Authentication</h4><p>PIN, biometrics, and device-bound sessions keep your account exclusively yours.</p></div>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <div><h4>Real-Time Fraud Detection</h4><p>AI-powered monitoring flags suspicious activity and blocks unauthorized transactions instantly.</p></div>
+                    </li>
+                    <li class="feature-item">
+                        <div class="feature-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+                        <div><h4>Bank-Grade Encryption</h4><p>256-bit SSL protects every session in this demonstration prototype.</p></div>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <div class="feature-visual">
+                    <h4>Savings Growth Projection</h4>
+                    <p>4.85% APY vs. national average 0.45%</p>
+                    <div class="chart-bars" id="growthChart">
+                        <div class="bar-col"><div class="bar bar-y1"></div><span class="bar-label">Year 1</span></div>
+                        <div class="bar-col"><div class="bar bar-y2"></div><span class="bar-label">Year 2</span></div>
+                        <div class="bar-col"><div class="bar bar-y3"></div><span class="bar-label">Year 3</span></div>
+                        <div class="bar-col"><div class="bar bar-y4"></div><span class="bar-label">Year 4</span></div>
+                        <div class="bar-col"><div class="bar bar-y5"></div><span class="bar-label">Year 5</span></div>
+                        <div class="bar-col"><div class="bar bar-y6"></div><span class="bar-label">Year 6</span></div>
+                        <div class="bar-col"><div class="bar bar-y7"></div><span class="bar-label">Year 7</span></div>
+                    </div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><div class="legend-dot legend-dot-gold"></div>Vanstra 4.85% APY</div>
+                        <div class="legend-item"><div class="legend-dot legend-dot-gray"></div>National Avg 0.45%</div>
+                    </div>
+                    <div class="chart-summary">
+                        <div>
+                            <div class="chart-summary-label">$50,000 after 7 years</div>
+                            <div class="chart-summary-value">$70,843</div>
+                        </div>
+                        <div class="chart-summary-right">
+                            <div class="chart-summary-label">Interest earned</div>
+                            <div class="chart-summary-interest">+$20,843</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="how-bg">
+    <div class="section-inner">
+        <div class="text-center">
+            <span class="section-tag">Getting Started</span>
+            <h2 class="section-title">Open Your Account in Minutes</h2>
+            <p class="section-sub centered">No paperwork, no branch visits. Everything is handled securely online.</p>
+        </div>
+        <div class="steps-grid">
+            <div class="step-card">
+                <div class="step-num">1</div>
+                <h3>Create Your Account</h3>
+                <p>Complete our streamlined online application in under 5 minutes. Just your basic details and a valid ID.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">2</div>
+                <h3>Verify Your Identity</h3>
+                <p>Secure, automated KYC verification powered by bank-grade identity checks — completed in real time.</p>
+            </div>
+            <div class="step-card">
+                <div class="step-num">3</div>
+                <h3>Fund & Start Banking</h3>
+                <p>Make your first deposit, activate your card, and access the full suite of Vanstra features immediately.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials-bg">
+    <div class="section-inner">
+        <div class="text-center">
+            <span class="section-tag">Client Stories</span>
+            <h2 class="section-title">Trusted by Success</h2>
+            <p class="section-sub centered">Join a community of clients who've made Vanstra Capital their financial home.</p>
+        </div>
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <p class="testimonial-text">"Vanstra Capital transformed how I manage my business finances. The high-yield accounts and instant transfers have been game-changers for my cash flow."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar avatar-gold">SC</div>
+                    <div><div class="author-name">Sarah Chen</div><div class="author-role">Tech Entrepreneur</div></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <p class="testimonial-text">"The wealth management services are exceptional. My advisor helped me optimize my portfolio and I've seen consistent growth since switching to Vanstra."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar avatar-brand">MR</div>
+                    <div><div class="author-name">Michael Rodriguez</div><div class="author-role">Investment Manager</div></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    <svg viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                </div>
+                <p class="testimonial-text">"As a startup founder, I needed a bank that scales with my business. Vanstra's banking solutions have been absolutely perfect for our growth trajectory."</p>
+                <div class="testimonial-author">
+                    <div class="author-avatar avatar-slate">ET</div>
+                    <div><div class="author-name">Emma Thompson</div><div class="author-role">Startup Founder</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="cta-section">
+    <div class="section-inner">
+        <h2>Ready to Transform Your Banking?</h2>
+        <p>Open your account in minutes and start experiencing what premium banking was always meant to feel like.</p>
+        <div class="cta-btns">
+            <a href="signup.html" class="btn-cta-primary">
+                Open Your Account
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+            <a href="contact.html" class="btn-cta-secondary">Talk to an Advisor</a>
+        </div>
+    </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+    <div class="footer-inner">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <a href="index.html" class="nav-logo footer-logo">
+                    <div class="nav-logo-mark">
+                        <svg viewBox="0 0 24 24" fill="none"><path d="M5.5 6 L12 19.5 L18.5 6" stroke="#041225" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18.5" cy="6" r="1.9" fill="#041225"/></svg>
+                    </div>
+                    <span class="nav-logo-text">Vanstra Capital</span>
+                </a>
+                <p>Premium online banking and wealth management designed for the modern financial landscape. Security, innovation, and excellence in every transaction.</p>
+                <p class="footer-legal">© 2025 Vanstra Capital (demo). All rights reserved.<br>Demonstration prototype — not a bank, not FDIC‑insured.</p>
+            </div>
+            <div class="footer-col">
+                <h4>Products</h4>
+                <ul>
+                    <li><a href="products.html">Personal Banking</a></li>
+                    <li><a href="products.html">Business Accounts</a></li>
+                    <li><a href="products.html">Wealth Management</a></li>
+                    <li><a href="products.html">Investment Services</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="faq.html">FAQ</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                    <li><a href="support.html">Help Center</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>Legal</h4>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="terms.html">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>Vanstra Capital is a demonstration prototype, not a regulated financial institution.</p>
+            <button type="button" class="footer-admin" onclick="window.location.href='admin-login.html'" title="Admin">
+                <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </button>
+        </div>
+        <p class="demo-disclaimer">
+            <strong>DEMO — NOT A REAL FINANCIAL INSTITUTION.</strong><br>
+            Vanstra Capital is a product demonstration for evaluation purposes only. It is not a bank,
+            does not hold deposits, and is not FDIC‑insured. Please do not enter real passwords,
+            Social Security numbers, card details, or other genuine personal information.
+        </p>
+    </div>
+</footer>
+
+<script>
+    // Mobile nav toggle
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+    hamburger.addEventListener('click', () => {
+        hamburger.classList.toggle('open');
+        mobileMenu.classList.toggle('open');
+    });
+
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+            hamburger.classList.remove('open');
+            mobileMenu.classList.remove('open');
+        });
+    });
+
+    // Nav scroll effect
+    window.addEventListener('scroll', () => {
+        const nav = document.getElementById('mainNav');
+        if (window.scrollY > 40) {
+            nav.style.background = 'rgba(4,18,37,0.97)';
+        } else {
+            nav.style.background = 'rgba(4,18,37,0.92)';
+        }
+    });
+
+    // Typed.js hero text
+    new Typed('#heroTyped', {
+        strings: ['Modern Investors.', 'Entrepreneurs.', 'Global Families.', 'High Achievers.'],
+        typeSpeed: 60,
+        backSpeed: 30,
+        backDelay: 2000,
+        loop: true,
+        showCursor: true,
+        cursorChar: '|'
+    });
+
+    // Scroll-reveal animation
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.product-card, .step-card, .testimonial-card, .feature-item').forEach(el => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(24px)';
+        el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        observer.observe(el);
+    });
+</script>
+</body>
+</html>

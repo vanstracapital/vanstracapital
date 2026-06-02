@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign In — Vanstra Bank</title>
+  <meta name="description" content="Sign in to your Vanstra Bank account securely.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="bank-ui.css">
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+    body {
+      background: #EEF1F8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100%;
+    }
+
+    .bg-blobs { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+    .blob { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.14; }
+    .blob-1 { width: 480px; height: 480px; background: var(--brand-light); top: -160px; left: -120px; }
+    .blob-2 { width: 360px; height: 360px; background: var(--gold); bottom: -100px; right: -80px; }
+    .blob-3 { width: 280px; height: 280px; background: var(--indigo); top: 45%; left: 62%; }
+
+    .login-wrap {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 420px;
+      padding: 1.5rem 1.25rem;
+      animation: fadeInUp 0.5s ease both;
+    }
+
+    .login-logo { text-align: center; margin-bottom: 2rem; }
+
+    .logo-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 64px; height: 64px;
+      background: linear-gradient(150deg, #0B2A3F 0%, #041225 100%);
+      border: 1px solid rgba(200,154,58,0.35);
+      border-radius: 20px; margin-bottom: 0.875rem;
+      box-shadow: 0 10px 28px rgba(4,18,37,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .logo-name { font-family: 'Poppins', sans-serif; font-size: 1.625rem; font-weight: 800; color: #0F1E35; margin: 0; letter-spacing: -0.5px; }
+    .logo-tag  { font-size: 0.8125rem; color: #6B7280; margin: 0.25rem 0 0; }
+
+    .status-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; font-size: 0.75rem; color: #9CA3AF; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2.5s ease-in-out infinite; }
+
+    .login-card {
+      background: #FFFFFF;
+      border: 1px solid #E6E9F0;
+      border-radius: 24px;
+      padding: 2rem 1.75rem;
+      box-shadow: 0 20px 48px rgba(15,30,53,.10), 0 4px 14px rgba(15,30,53,.05);
+    }
+
+    .login-heading { font-family: 'Poppins', sans-serif; font-size: 1.375rem; font-weight: 700; color: #111827; margin: 0 0 0.3rem; }
+    .login-sub     { font-size: 0.875rem; color: #6B7280; margin: 0 0 1.75rem; }
+
+    .dark-label { display: block; font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 0.4rem; }
+
+    .dark-input {
+      width: 100%; padding: 0.9375rem 1rem;
+      background: #F9FAFB;
+      border: 1.5px solid #E5E7EB;
+      border-radius: var(--radius-md);
+      font-size: 0.9375rem; color: #111827; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .dark-input::placeholder { color: #9CA3AF; }
+    .dark-input:focus {
+      border-color: var(--brand-light);
+      background: #FFFFFF;
+      box-shadow: 0 0 0 3px rgba(58,87,232,.12);
+    }
+    .dark-input.error { border-color: #EF4444; box-shadow: 0 0 0 3px rgba(239,68,68,.12); }
+
+    .input-row { position: relative; }
+    .input-toggle {
+      position: absolute; right: 0.875rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      color: #9CA3AF; padding: 0.25rem; border-radius: 6px;
+      transition: color 0.2s; display: flex;
+    }
+    .input-toggle:hover { color: #4B5563; }
+
+    .error-box {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      display: none; align-items: center; gap: 0.625rem; margin-bottom: 1.25rem;
+    }
+    .error-box.show { display: flex; animation: shake 0.4s ease; }
+    .error-box svg { color: var(--error); flex-shrink: 0; }
+    .error-box span { font-size: 0.875rem; color: #991B1B; line-height: 1.4; }
+
+    .login-meta { display: flex; align-items: center; justify-content: space-between; margin: 0.75rem 0 1.5rem; }
+    .remember-row { display: flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+    .remember-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--brand-light); }
+    .remember-row span { font-size: 0.8125rem; color: #6B7280; }
+    .forgot-link { font-size: 0.8125rem; font-weight: 600; color: var(--brand-light); cursor: pointer; transition: opacity 0.2s; }
+    .forgot-link:hover { opacity: 0.7; }
+
+    .signin-btn {
+      width: 100%; padding: 1rem;
+      background: linear-gradient(135deg, var(--brand-light), var(--indigo));
+      color: white; border: none; border-radius: var(--radius-md);
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      box-shadow: 0 6px 18px rgba(58,87,232,.28); letter-spacing: 0.01em;
+    }
+    .signin-btn:hover:not(:disabled) { box-shadow: 0 10px 26px rgba(58,87,232,.36); opacity: 0.96; }
+    .signin-btn:active:not(:disabled) { transform: scale(0.98); }
+    .signin-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    .alt-divider {
+      display: flex; align-items: center; gap: 1rem; margin: 1.25rem 0 0.75rem;
+    }
+    .alt-divider-line { flex: 1; height: 1px; background: #E5E7EB; }
+    .alt-divider span  { font-size: 0.75rem; color: #9CA3AF; white-space: nowrap; }
+
+    .biometric-btn {
+      width: 100%; padding: 0.875rem;
+      background: #FFFFFF;
+      border: 1.5px solid #E5E7EB;
+      border-radius: var(--radius-md);
+      color: #374151; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 0.625rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .biometric-btn:hover { background: #F9FAFB; border-color: #D1D5DB; }
+
+    .login-footer { text-align: center; margin-top: 1.5rem; }
+    .login-footer p { font-size: 0.8125rem; color: #6B7280; margin: 0; }
+    .login-footer a { color: var(--brand-light); font-weight: 600; cursor: pointer; }
+    .login-footer a:hover { opacity: 0.75; }
+
+    .security-badge {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      margin-top: 1.75rem; font-size: 0.72rem; color: #9CA3AF;
+    }
+
+    /* Forgot password overlay */
+    .forgot-overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(15,30,53,.45);
+      -webkit-backdrop-filter: blur(6px);
+      backdrop-filter: blur(6px);
+      display: none; align-items: center; justify-content: center; padding: 1.25rem;
+    }
+    .forgot-overlay.active { display: flex; }
+
+    .forgot-card {
+      background: #FFFFFF;
+      border: 1px solid #E6E9F0;
+      border-radius: 24px; padding: 2rem 1.75rem;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 24px 60px rgba(15,30,53,.22);
+      animation: scaleIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .forgot-card h2 { font-family: 'Poppins', sans-serif; font-size: 1.25rem; font-weight: 700; color: #111827; margin: 0 0 0.375rem; }
+    .forgot-card p  { font-size: 0.875rem; color: #6B7280; margin: 0 0 1.5rem; line-height: 1.5; }
+
+    .forgot-success { display: none; text-align: center; padding: 0.5rem 0; }
+    .forgot-success-icon {
+      width: 60px; height: 60px;
+      background: rgba(16,185,129,.12); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;
+    }
+
+    /* Forgot card sub-components */
+    .forgot-header     { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem; }
+    .forgot-header-text h2 { margin: 0 0 0.25rem; }
+    .forgot-header-text p  { margin: 0; font-size: 0.875rem; color: #6B7280; line-height: 1.5; }
+    .forgot-close-btn  {
+      background: #F3F4F6; border: none;
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #6B7280; flex-shrink: 0; margin-left: 1rem;
+      transition: background 0.2s;
+    }
+    .forgot-close-btn:hover { background: #E5E7EB; }
+    .forgot-email-wrap { margin-bottom: 1.25rem; }
+    .forgot-success-title {
+      font-family: 'Poppins', sans-serif; font-size: 1.125rem; font-weight: 700;
+      color: #111827; margin: 0 0 0.5rem;
+    }
+    .forgot-success-text {
+      font-size: 0.875rem; color: #6B7280;
+      margin: 0 0 1.5rem; line-height: 1.5;
+    }
+
+    /* Password input has right-side icon */
+    .dark-input-pw { padding-right: 3rem; }
+
+    /* Password form group — tighter bottom gap before meta row */
+    .form-group-pw { margin-bottom: 0.5rem; }
+
+    @keyframes fadeInUp { from { opacity:0; transform: translateY(16px); } to { opacity:1; transform: translateY(0); } }
+    @keyframes scaleIn  { from { transform: scale(0.9); opacity:0; } to { transform: scale(1); opacity:1; } }
+    @keyframes shake    { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-5px)} 40%,80%{transform:translateX(5px)} }
+  </style>
+</head>
+<body>
+
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="logo-mark">
+        <svg width="36" height="36" fill="none" viewBox="0 0 32 32">
+          <path d="M7.5 8.5 L16 26 L24.5 8.5" stroke="url(#vmark)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="24.5" cy="8.5" r="2.6" fill="#E6B964"/>
+          <defs>
+            <linearGradient id="vmark" x1="7.5" y1="8.5" x2="24.5" y2="26" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#E6B964"/>
+              <stop offset="1" stop-color="#C89A3A"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <h1 class="logo-name">Vanstra Bank</h1>
+      <p class="logo-tag">Your money, your way</p>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot"></div>
+      All systems operational
+    </div>
+
+    <div class="login-card">
+      <h2 class="login-heading">Welcome back</h2>
+      <p class="login-sub">Sign in to your account</p>
+
+      <div class="error-box" id="errorBox" role="alert">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke-width="2"/>
+          <path d="M12 8v4M12 16h.01" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span id="errorMessage">Invalid email or password.</span>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+        <div class="form-group">
+          <label class="dark-label" for="email">Email address</label>
+          <input type="email" id="email" class="dark-input" placeholder="you@example.com" autocomplete="email" required/>
+        </div>
+
+        <div class="form-group form-group-pw">
+          <label class="dark-label" for="password">Password</label>
+          <div class="input-row">
+            <input type="password" id="password" class="dark-input dark-input-pw" placeholder="Enter your password" autocomplete="current-password" required/>
+            <button type="button" class="input-toggle" onclick="togglePassword()" aria-label="Toggle password visibility">
+              <svg id="eyeIcon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="login-meta">
+          <label class="remember-row">
+            <input type="checkbox" id="rememberMe"/>
+            <span>Remember me</span>
+          </label>
+          <span class="forgot-link" onclick="openForgotPassword()">Forgot password?</span>
+        </div>
+
+        <button type="submit" class="signin-btn" id="loginBtn">
+          <span id="btnText">Sign in</span>
+          <svg id="btnArrow" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="alt-divider">
+        <div class="alt-divider-line"></div>
+        <span>or continue with</span>
+        <div class="alt-divider-line"></div>
+      </div>
+
+      <button type="button" class="biometric-btn" onclick="handleBiometric()">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+        </svg>
+        Biometric / Face ID
+      </button>
+    </div>
+
+    <div class="login-footer">
+      <p>Don't have an account? <a href="signup.html">Create account</a></p>
+    </div>
+
+    <div class="security-badge">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+      </svg>
+      256-bit SSL Encryption · PCI DSS Compliant
+    </div>
+  </div>
+
+  <!-- Forgot Password overlay -->
+  <div class="forgot-overlay" id="forgotOverlay">
+    <div class="forgot-card">
+      <div id="forgotFormWrap">
+        <div class="forgot-header">
+          <div class="forgot-header-text">
+            <h2>Reset password</h2>
+            <p>We'll send a reset link to your email.</p>
+          </div>
+          <button type="button" class="forgot-close-btn" onclick="closeForgotPassword()" aria-label="Close">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <label class="dark-label" for="forgotEmail">Email address</label>
+        <div class="forgot-email-wrap">
+          <input type="email" id="forgotEmail" class="dark-input" placeholder="you@example.com"/>
+        </div>
+        <button type="button" class="signin-btn" id="forgotBtn" onclick="submitForgotPassword()">Send reset link</button>
+      </div>
+
+      <div class="forgot-success" id="forgotSuccess">
+        <div class="forgot-success-icon">
+          <svg width="28" height="28" fill="none" stroke="#10B981" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <h2 class="forgot-success-title">Check your inbox</h2>
+        <p id="forgotSuccessText" class="forgot-success-text">We've sent password reset instructions.</p>
+        <button type="button" class="signin-btn" onclick="closeForgotPassword()">Back to sign in</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="alert"></div>
+
+  <script src="bank-core-v2.js"></script>
+  <script src="config.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Always require a fresh login + OTP. Clear any stale local session so an
+      // old 24h session token can't auto-skip the login/verification step.
+      try {
+        localStorage.removeItem('currentSession');
+        localStorage.removeItem('authToken');
+      } catch (e) { /* ignore */ }
+
+      const remembered = localStorage.getItem('vanstraRememberedEmail');
+      if (remembered) {
+        document.getElementById('email').value = remembered;
+        document.getElementById('rememberMe').checked = true;
+      }
+    });
+
+    async function handleLogin(event) {
+      event.preventDefault();
+      clearErrors();
+
+      const email    = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const remember = document.getElementById('rememberMe').checked;
+
+      if (!email)    { showInputError('email', 'Please enter your email address.'); return; }
+      if (!password) { showInputError('password', 'Please enter your password.'); return; }
+
+      setLoading(true);
+
+      try {
+        // Authenticate against the backend, which emails a one-time code.
+        const response = await fetch(`${API_CONFIG.API_BASE_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          setLoading(false);
+          showError(data.message || 'Invalid email or password. Please try again.');
+          return;
+        }
+
+        if (data.success && data.requiresOTP) {
+          if (remember) localStorage.setItem('vanstraRememberedEmail', email);
+          else localStorage.removeItem('vanstraRememberedEmail');
+
+          document.getElementById('btnText').textContent = 'Sending code…';
+          // Hand off to the OTP screen to complete verification.
+          const params = new URLSearchParams({
+            tempToken: data.tempToken,
+            email: data.email || email,
+            purpose: 'login'
+          });
+          if (data.testOTP) params.set('testOTP', data.testOTP);
+          window.location.href = 'verify-otp.html?' + params.toString();
+        } else {
+          setLoading(false);
+          showError(data.message || 'Invalid email or password. Please try again.');
+        }
+      } catch (e) {
+        setLoading(false);
+        showError('Something went wrong. Please check your connection and try again.');
+      }
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('password');
+      const icon  = document.getElementById('eyeIcon');
+      const show  = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      icon.innerHTML = show
+        ? `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>`
+        : `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>`;
+    }
+
+    function handleBiometric() { showToast('Biometric auth is not configured on this device.', 'info'); }
+
+    function openForgotPassword() {
+      const e = document.getElementById('email').value;
+      if (e) document.getElementById('forgotEmail').value = e;
+      document.getElementById('forgotOverlay').classList.add('active');
+      document.getElementById('forgotFormWrap').style.display = 'block';
+      document.getElementById('forgotSuccess').style.display  = 'none';
+    }
+
+    function closeForgotPassword() { document.getElementById('forgotOverlay').classList.remove('active'); }
+
+    async function submitForgotPassword() {
+      const email = document.getElementById('forgotEmail').value.trim();
+      if (!email) { document.getElementById('forgotEmail').classList.add('error'); return; }
+      const btn = document.getElementById('forgotBtn');
+      btn.disabled = true;
+      btn.textContent = 'Sending…';
+
+      try {
+        const response = await fetch(`${API_CONFIG.API_BASE_URL}/auth/forgot-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          showToast(data.message || 'Could not send reset link. Please try again.', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Send reset link';
+          return;
+        }
+
+        // Backend returns a generic success regardless of whether the email exists
+        document.getElementById('forgotFormWrap').style.display = 'none';
+        document.getElementById('forgotSuccess').style.display  = 'block';
+        document.getElementById('forgotSuccessText').textContent = `If an account exists for ${email}, we've sent a password reset link. Check your inbox (and spam).`;
+      } catch (e) {
+        showToast('Something went wrong. Please check your connection and try again.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Send reset link';
+      }
+    }
+
+    function setLoading(loading) {
+      const btn = document.getElementById('loginBtn');
+      btn.disabled = loading;
+      document.getElementById('btnText').textContent  = loading ? 'Signing in…' : 'Sign in';
+      document.getElementById('btnArrow').style.display = loading ? 'none' : 'inline';
+    }
+
+    function showError(msg) {
+      document.getElementById('errorMessage').textContent = msg;
+      document.getElementById('errorBox').classList.add('show');
+    }
+
+    function showInputError(id, msg) {
+      document.getElementById(id).classList.add('error');
+      showError(msg);
+    }
+
+    function clearErrors() {
+      document.getElementById('errorBox').classList.remove('show');
+      ['email','password'].forEach(id => document.getElementById(id).classList.remove('error'));
+    }
+
+    function showToast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast ' + type + ' show';
+      setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+  </script>
+</body>
+</html>

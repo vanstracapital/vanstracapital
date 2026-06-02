@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Vanstra Capital</title>
+    <meta name="description" content="Vanstra Capital administrative panel sign in.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Inter', sans-serif; margin: 0; min-height: 100vh;
+            display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+            background: linear-gradient(150deg, #0B2A3F 0%, #041225 100%); color: #fff;
+        }
+        .admin-card {
+            width: 100%; max-width: 400px;
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 22px; padding: 2rem 1.75rem;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+            -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+        }
+        .admin-logo {
+            width: 56px; height: 56px; border-radius: 16px; margin: 0 auto 1rem;
+            background: linear-gradient(150deg, #0B2A3F, #041225);
+            border: 1px solid rgba(200,154,58,0.4);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .admin-title { font-family: 'Poppins', sans-serif; font-size: 1.35rem; font-weight: 800; text-align: center; margin: 0 0 0.25rem; }
+        .admin-sub { text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem; margin: 0 0 1.75rem; }
+        .field { margin-bottom: 1.1rem; }
+        .field label { display: block; font-size: 0.8rem; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 0.45rem; }
+        .field input {
+            width: 100%; padding: 0.85rem 1rem; border-radius: 12px;
+            background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.12);
+            color: #fff; font-size: 0.95rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .field input::placeholder { color: rgba(255,255,255,0.3); }
+        .field input:focus { border-color: #C89A3A; box-shadow: 0 0 0 3px rgba(200,154,58,0.15); }
+        .admin-btn {
+            width: 100%; padding: 0.95rem; border: none; border-radius: 12px; cursor: pointer;
+            background: linear-gradient(135deg, #D4AF56, #C89A3A); color: #041225;
+            font-family: inherit; font-weight: 700; font-size: 1rem; margin-top: 0.5rem;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+        .admin-btn:hover:not(:disabled) { opacity: 0.94; }
+        .admin-btn:active:not(:disabled) { transform: scale(0.98); }
+        .admin-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .admin-error {
+            background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3);
+            color: #FCA5A5; font-size: 0.85rem; border-radius: 10px; padding: 0.7rem 0.9rem;
+            margin-bottom: 1rem; display: none;
+        }
+        .admin-error.show { display: block; }
+        .admin-foot { text-align: center; margin-top: 1.5rem; }
+        .admin-foot a { color: rgba(255,255,255,0.45); font-size: 0.8rem; text-decoration: none; }
+        .admin-foot a:hover { color: #C89A3A; }
+    </style>
+</head>
+<body>
+    <div class="admin-card">
+        <div class="admin-logo">
+            <svg width="30" height="30" fill="none" viewBox="0 0 32 32">
+                <path d="M7.5 8.5 L16 26 L24.5 8.5" stroke="#E6B964" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="24.5" cy="8.5" r="2.6" fill="#E6B964"/>
+            </svg>
+        </div>
+        <h1 class="admin-title">Admin Panel</h1>
+        <p class="admin-sub">Vanstra Capital · Administrator sign in</p>
+
+        <div id="adminError" class="admin-error"></div>
+
+        <form id="adminLoginForm">
+            <div class="field">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="admin" autocomplete="username" required>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter admin password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="admin-btn" id="adminSubmit">Sign In</button>
+        </form>
+
+        <div class="admin-foot">
+            <a href="index.html">← Back to website</a>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        function showAdminError(msg) {
+            const el = document.getElementById('adminError');
+            el.textContent = msg; el.classList.add('show');
+        }
+        document.getElementById('adminLoginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            document.getElementById('adminError').classList.remove('show');
+
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('adminSubmit');
+            btn.disabled = true; btn.textContent = 'Signing in…';
+
+            try {
+                const response = await fetch(`${API_CONFIG.API_BASE_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    showAdminError(data.message || 'Invalid username or password.');
+                    return;
+                }
+
+                // Store the admin JWT used by admin.html for all admin API calls
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('adminSession', JSON.stringify({
+                    username: username,
+                    email: data.admin && data.admin.email,
+                    loginTime: new Date().toISOString()
+                }));
+
+                window.location.href = 'admin.html';
+            } catch (err) {
+                showAdminError('Could not reach the server. Ensure the backend is running and try again.');
+            } finally {
+                btn.disabled = false; btn.textContent = 'Sign In';
+            }
+        });
+    </script>
+</body>
+</html>

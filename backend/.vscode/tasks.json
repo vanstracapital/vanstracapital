@@ -1,0 +1,20 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Static Server",
+			"type": "shell",
+			"command": "node start-static-server.js"
+		},
+		{
+			"label": "Start Static Server",
+			"type": "shell",
+			"command": "node start-static-server.js"
+		},
+		{
+			"label": "Start Static Server",
+			"type": "shell",
+			"command": "node"
+		}
+	]
+}

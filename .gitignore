@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+
+# Environment / secrets — NEVER commit real credentials
+.env
+backend/.env
+*.local
+
+# Runtime file-DB data (per-deployment, not source)
+backend/data/users.json
+backend/data/otps.json
+backend/data/audit.json
+
+# Logs / OS cruft
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
