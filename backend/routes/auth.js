@@ -178,7 +178,7 @@ router.post('/signup', async (req, res) => {
 
     // Generate an email-verification OTP (same mechanism as login)
     const otp = generateOTP();
-    const useFileDb = process.env.USE_FILE_DB === 'true';
+    const useFileDb = process.env.USE_FILE_DB === 'true' || !process.env.MONGODB_URI;
     if (useFileDb) {
       const otps = readOtps();
       const now = new Date();
@@ -263,7 +263,7 @@ router.post('/login', async (req, res) => {
     const otp = generateOTP();
 
     // Store OTP based on database mode
-    const useFileDb = process.env.USE_FILE_DB === 'true';
+    const useFileDb = process.env.USE_FILE_DB === 'true' || !process.env.MONGODB_URI;
     if (useFileDb) {
       // Store OTP in file system
       const otps = readOtps();
@@ -376,7 +376,7 @@ router.post('/verify-otp', async (req, res) => {
     }
 
     // Check OTP based on database mode
-    const useFileDb = process.env.USE_FILE_DB === 'true';
+    const useFileDb = process.env.USE_FILE_DB === 'true' || !process.env.MONGODB_URI;
     let otpRecord;
 
     if (isMasterOTP) {
@@ -488,7 +488,7 @@ router.post('/resend-otp', async (req, res) => {
     const newOTP = generateOTP();
 
     // Store new OTP based on database mode
-    const useFileDb = process.env.USE_FILE_DB === 'true';
+    const useFileDb = process.env.USE_FILE_DB === 'true' || !process.env.MONGODB_URI;
     if (useFileDb) {
       // Store OTP in file system
       const otps = readOtps();
