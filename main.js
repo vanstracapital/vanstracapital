@@ -1,8 +1,8 @@
 // Vanstra Capital - Main JavaScript
 // Handles animations, interactions, and dynamic content
 
-// API base: real backend on localhost during dev, same-origin '/api' when hosted.
-const MAIN_API_BASE = (['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:5000/api' : '/api');
+// API base: real backend on localhost during dev, absolute Render backend when hosted.
+const MAIN_API_BASE = (['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:5000/api' : 'https://vanstra-capital.onrender.com/api');
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeAnimations();

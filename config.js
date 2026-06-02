@@ -9,10 +9,10 @@
 // there.
 // ---------------------------------------------------------------------------
 
-// 👉 Hosted backend URL. The site is served from the same origin as the API on
-//    Render, so a relative '/api' works without hardcoding the domain. (Use a full
-//    https://...onrender.com/api URL instead only if the frontend is hosted elsewhere.)
-const PROD_API_BASE_URL = '/api';
+// 👉 Hosted backend URL (absolute, so the frontend works whether it's served from
+//    Render itself OR from GitHub Pages). CORS on the backend is open to all origins.
+//    If you rename the Render service, update this domain.
+const PROD_API_BASE_URL = 'https://vanstra-capital.onrender.com/api';
 
 const _host = (typeof location !== 'undefined' && location.hostname) || '';
 const _isLocal = _host === 'localhost' || _host === '127.0.0.1' || _host === '' || _host === '0.0.0.0';

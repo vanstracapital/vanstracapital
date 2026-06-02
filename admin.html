@@ -480,8 +480,8 @@
     
     <script>
         // Admin panel configuration
-        // Same-origin '/api' when hosted; real localhost backend during local dev.
-        const API_BASE_URL = (['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:5000/api' : '/api');
+        // Absolute Render backend when hosted; real localhost backend during local dev.
+        const API_BASE_URL = (['localhost', '127.0.0.1'].includes(location.hostname) ? 'http://localhost:5000/api' : 'https://vanstra-capital.onrender.com/api');
         const STATUS_CODE_HINTS = {
             frozen: { label: 'COT', code: '962101' },
             blocked: { label: 'AFD', code: '385247' },
