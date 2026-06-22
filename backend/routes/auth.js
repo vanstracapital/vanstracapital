@@ -192,11 +192,12 @@ router.post('/signup', async (req, res) => {
     // Send the verification email
     const emailResult = await sendOTPEmail(user.email, otp, user.fullName);
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-    if (!emailResult.success && !skipEmailVerification) {
-      return res.status(500).json({
-        message: 'Account created, but we could not send the verification email. Please try logging in to request a new code.'
-      });
-    }
+
+    // Email delivery failures shouldn't block account creation. Fall back to
+    // showing the code on screen (same as test mode); the stored code and the
+    // master OTPs remain valid for verification.
+    const emailSent = emailResult.success;
+    const showCodeOnScreen = skipEmailVerification || !emailSent;
 
     // Short-lived token that only authorises the OTP-verification step.
     // No full auth token is issued until the email is verified.
@@ -211,11 +212,14 @@ router.post('/signup', async (req, res) => {
       requiresOTP: true,
       message: skipEmailVerification
         ? 'Test Mode: enter any 6 digits to verify your email and activate your account.'
-        : 'Account created. We emailed a 6-digit code to verify your email address.',
+        : emailSent
+          ? 'Account created. We emailed a 6-digit code to verify your email address.'
+          : 'Account created. We could not email your code right now, so it is shown below — enter it to verify.',
       tempToken,
       email: user.email,
-      testMode: skipEmailVerification,
-      testOTP: skipEmailVerification ? otp : undefined
+      emailSent,
+      testMode: showCodeOnScreen,
+      testOTP: showCodeOnScreen ? otp : undefined
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -287,13 +291,16 @@ router.post('/login', async (req, res) => {
 
     // Send OTP email
     const emailResult = await sendOTPEmail(user.email, otp, user.fullName);
-    
+
     // In development mode with SKIP_EMAIL_VERIFICATION, allow login without email
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-    
-    if (!emailResult.success && !skipEmailVerification) {
-      return res.status(500).json({ message: 'Failed to send OTP email. Please try again.' });
-    }
+
+    // If the code couldn't be emailed (e.g. no SMTP credentials configured on the
+    // host), don't dead-end the login with a 500. Fall back to on-screen entry so
+    // the app stays usable: the code shown is the real one stored above, and the
+    // master OTPs also work. `emailSent` lets the client explain what happened.
+    const emailSent = emailResult.success;
+    const showCodeOnScreen = skipEmailVerification || !emailSent;
 
     // Generate temporary session token (valid for OTP verification only, short expiry)
     const tempToken = jwt.sign(
@@ -304,12 +311,17 @@ router.post('/login', async (req, res) => {
 
     res.json({
       success: true,
-      message: skipEmailVerification ? 'Test Mode: OTP verification skipped. Use any 6 digits.' : 'OTP sent to your email. Please verify to complete login.',
+      message: skipEmailVerification
+        ? 'Test Mode: OTP verification skipped. Use any 6 digits.'
+        : emailSent
+          ? 'OTP sent to your email. Please verify to complete login.'
+          : 'We could not email your code right now, so it is shown below — enter it to continue.',
       tempToken,
       email: user.email,
       requiresOTP: true,
-      testMode: skipEmailVerification,
-      testOTP: skipEmailVerification ? otp : undefined
+      emailSent,
+      testMode: showCodeOnScreen,
+      testOTP: showCodeOnScreen ? otp : undefined
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -515,14 +527,21 @@ router.post('/resend-otp', async (req, res) => {
 
     // Send new OTP email
     const emailResult = await sendOTPEmail(user.email, newOTP, user.fullName);
-    
-    if (!emailResult.success) {
-      return res.status(500).json({ message: 'Failed to resend OTP. Please try again.' });
-    }
+    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+
+    // Mirror login/signup: a failed email send falls back to on-screen entry
+    // instead of a 500, so the user can still complete verification.
+    const emailSent = emailResult.success;
+    const showCodeOnScreen = skipEmailVerification || !emailSent;
 
     res.json({
       success: true,
-      message: 'New OTP sent to your email',
+      emailSent,
+      testMode: showCodeOnScreen,
+      testOTP: showCodeOnScreen ? newOTP : undefined,
+      message: emailSent
+        ? 'New OTP sent to your email'
+        : 'We could not email your code right now, so it is shown below — enter it to continue.',
     });
   } catch (error) {
     console.error('Resend OTP error:', error);

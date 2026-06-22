@@ -451,8 +451,15 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    successMsg.textContent = 'New OTP sent to your email';
+                    successMsg.textContent = data.message || 'New OTP sent to your email';
                     successMsg.classList.add('show');
+                    // If the server couldn't email the code, it returns it for on-screen entry.
+                    if (data.testOTP) {
+                        const testBox = document.getElementById('testModeBox');
+                        const testDisplay = document.getElementById('testOTPDisplay');
+                        if (testBox) testBox.style.display = 'block';
+                        if (testDisplay) testDisplay.textContent = data.testOTP;
+                    }
                     startResendTimer();
                 } else {
                     errorMsg.textContent = data.message || 'Failed to resend OTP';
