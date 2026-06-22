@@ -7,7 +7,14 @@ const transporter = nodemailer.createTransport({
   auth: {
     user: process.env.EMAIL_USER || 'your-email@gmail.com',
     pass: process.env.EMAIL_PASSWORD || 'your-app-password'
-  }
+  },
+  // Fail fast instead of hanging. Some hosts (e.g. Render's free tier) block
+  // outbound SMTP, which would otherwise stall the connection for ~minute. With
+  // these caps a blocked/unreachable SMTP server errors out in a few seconds and
+  // the caller can fall back to on-screen code entry.
+  connectionTimeout: 8000,
+  greetingTimeout: 8000,
+  socketTimeout: 8000
 });
 
 // Generate OTP

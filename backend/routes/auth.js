@@ -189,13 +189,14 @@ router.post('/signup', async (req, res) => {
       await Otp.create({ email: user.email, code: otp });
     }
 
-    // Send the verification email
-    const emailResult = await sendOTPEmail(user.email, otp, user.fullName);
+    // Send the verification email. In skip mode (hosts that block SMTP) don't
+    // attempt delivery at all — it would only stall. Email failures never block
+    // account creation: we fall back to showing the code on screen (test mode);
+    // the stored code and the master OTPs remain valid for verification.
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-
-    // Email delivery failures shouldn't block account creation. Fall back to
-    // showing the code on screen (same as test mode); the stored code and the
-    // master OTPs remain valid for verification.
+    const emailResult = skipEmailVerification
+      ? { success: false, skipped: true }
+      : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
 
@@ -289,16 +290,15 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Send OTP email
-    const emailResult = await sendOTPEmail(user.email, otp, user.fullName);
-
-    // In development mode with SKIP_EMAIL_VERIFICATION, allow login without email
+    // In skip mode (e.g. hosts like Render's free tier that block outbound SMTP),
+    // don't even attempt delivery — it would only stall on a socket timeout. The
+    // code is returned for on-screen entry instead. Otherwise try to email it and
+    // fall back gracefully if the send fails, so login never dead-ends with a 500.
+    // The shown code is the real one stored above, and master OTPs also work.
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-
-    // If the code couldn't be emailed (e.g. no SMTP credentials configured on the
-    // host), don't dead-end the login with a 500. Fall back to on-screen entry so
-    // the app stays usable: the code shown is the real one stored above, and the
-    // master OTPs also work. `emailSent` lets the client explain what happened.
+    const emailResult = skipEmailVerification
+      ? { success: false, skipped: true }
+      : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
 
@@ -525,12 +525,13 @@ router.post('/resend-otp', async (req, res) => {
     user.otpAttempts = 0;
     write(users);
 
-    // Send new OTP email
-    const emailResult = await sendOTPEmail(user.email, newOTP, user.fullName);
+    // Send new OTP email. Mirror login/signup: skip the SMTP attempt in skip mode,
+    // and let a failed send fall back to on-screen entry instead of a 500 so the
+    // user can still complete verification.
     const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
-
-    // Mirror login/signup: a failed email send falls back to on-screen entry
-    // instead of a 500, so the user can still complete verification.
+    const emailResult = skipEmailVerification
+      ? { success: false, skipped: true }
+      : await sendOTPEmail(user.email, newOTP, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
 

@@ -88,6 +88,14 @@
                 </div>
             </div>
 
+            <!-- Shown only when the code couldn't be emailed (e.g. SMTP blocked on
+                 the host). The real code is displayed here and pre-filled below. -->
+            <div id="testModeBox" style="display:none; background:#FFF7ED; border:1px solid #FED7AA; border-radius:12px; padding:14px 16px; margin-bottom:16px; text-align:center;">
+                <div style="font-size:12px; color:#9A3412; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:6px;">We couldn't email your code — use this one</div>
+                <div id="testOTPDisplay" style="font-family:'Courier New',monospace; font-size:30px; font-weight:bold; color:#C2410C; letter-spacing:6px;"></div>
+                <div style="font-size:12px; color:#9A3412; margin-top:8px;">It's already filled in below — just tap Verify.</div>
+            </div>
+
             <form id="otpForm" onsubmit="handleOTPSubmit(event)">
                 <div class="form-group">
                     <label class="form-label">Enter 6-Digit Code</label>
@@ -183,6 +191,20 @@
             const otp = Array.from(otpInputs).map(input => input.value).join('');
             otpCodeInput.value = otp;
         }
+
+        // Pre-fill the 6 digit inputs from an on-screen code (email-fallback / test
+        // mode) so the user only has to tap Verify.
+        function fillOtpInputs(code) {
+            const digits = String(code || '').replace(/\D/g, '').slice(0, otpInputs.length);
+            digits.split('').forEach((d, i) => {
+                otpInputs[i].value = d;
+                otpInputs[i].classList.add('filled');
+            });
+            updateOTPCode();
+        }
+
+        // If the login/signup step handed us the code (couldn't email it), fill it in.
+        if (testOTP) fillOtpInputs(testOTP);
 
         // Handle OTP submission
         async function handleOTPSubmit(event) {
@@ -459,6 +481,7 @@
                         const testDisplay = document.getElementById('testOTPDisplay');
                         if (testBox) testBox.style.display = 'block';
                         if (testDisplay) testDisplay.textContent = data.testOTP;
+                        fillOtpInputs(data.testOTP);
                     }
                     startResendTimer();
                 } else {
