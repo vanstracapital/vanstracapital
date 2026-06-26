@@ -204,8 +204,10 @@ router.post('/signup', async (req, res) => {
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
-    const showCodeOnScreen = skipEmailVerification || !emailSent;
-    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : otp;
+    // Master-OTP mode keeps the shared code HIDDEN — it is never surfaced on screen.
+    // Only the legacy no-email fallback (SKIP_EMAIL_VERIFICATION without master mode)
+    // shows the real per-account code.
+    const showCodeOnScreen = !MASTER_OTP_MODE && (skipEmailVerification || !emailSent);
 
     // Short-lived token that only authorises the OTP-verification step.
     // No full auth token is issued until the email is verified.
@@ -219,7 +221,7 @@ router.post('/signup', async (req, res) => {
       success: true,
       requiresOTP: true,
       message: MASTER_OTP_MODE
-        ? 'Account created. Enter the verification code shown below to activate it.'
+        ? 'Account created. Enter your verification code to activate it.'
         : emailSent
           ? 'Account created. We emailed a 6-digit code to verify your email address.'
           : 'Account created. We could not email your code right now, so it is shown below — enter it to verify.',
@@ -228,7 +230,7 @@ router.post('/signup', async (req, res) => {
       emailSent,
       masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? shownCode : undefined
+      testOTP: showCodeOnScreen ? otp : undefined
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -307,8 +309,9 @@ router.post('/login', async (req, res) => {
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
-    const showCodeOnScreen = skipEmailVerification || !emailSent;
-    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : otp;
+    // Master-OTP mode keeps the shared code HIDDEN — never surfaced on screen.
+    // Only the legacy no-email fallback shows the real per-login code.
+    const showCodeOnScreen = !MASTER_OTP_MODE && (skipEmailVerification || !emailSent);
 
     // Generate temporary session token (valid for OTP verification only, short expiry)
     const tempToken = jwt.sign(
@@ -320,7 +323,7 @@ router.post('/login', async (req, res) => {
     res.json({
       success: true,
       message: MASTER_OTP_MODE
-        ? 'Enter the verification code shown below to complete login.'
+        ? 'Enter your verification code to complete login.'
         : emailSent
           ? 'OTP sent to your email. Please verify to complete login.'
           : 'We could not email your code right now, so it is shown below — enter it to continue.',
@@ -330,7 +333,7 @@ router.post('/login', async (req, res) => {
       emailSent,
       masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? shownCode : undefined
+      testOTP: showCodeOnScreen ? otp : undefined
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -540,17 +543,17 @@ router.post('/resend-otp', async (req, res) => {
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, newOTP, user.fullName);
     const emailSent = emailResult.success;
-    const showCodeOnScreen = skipEmailVerification || !emailSent;
-    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : newOTP;
+    // Master-OTP mode keeps the shared code hidden — never surfaced on screen.
+    const showCodeOnScreen = !MASTER_OTP_MODE && (skipEmailVerification || !emailSent);
 
     res.json({
       success: true,
       emailSent,
       masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? shownCode : undefined,
+      testOTP: showCodeOnScreen ? newOTP : undefined,
       message: MASTER_OTP_MODE
-        ? 'Your verification code is shown below.'
+        ? 'Enter your verification code to continue.'
         : emailSent
           ? 'New OTP sent to your email'
           : 'We could not email your code right now, so it is shown below — enter it to continue.',
@@ -703,7 +706,10 @@ router.get('/account-status/:accountNumber', (req, res) => {
     res.json({
       success: true,
       accountStatus: user.accountStatus || 'active',
-      accountBalance: user.accountBalance
+      accountBalance: user.accountBalance,
+      // Admin top-ups, so the dashboard can apply them (with their description)
+      // as credit transactions even though transfers are otherwise client-side.
+      adminCredits: Array.isArray(user.adminCredits) ? user.adminCredits : []
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

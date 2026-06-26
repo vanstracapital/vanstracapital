@@ -198,6 +198,65 @@ router.put('/update-balance/:id', (req, res) => {
   }
 });
 
+// @route   POST /api/admin/users/:id/topup
+// @desc    Add funds to a user's balance with a description. The credit is
+//          recorded in user.adminCredits so the user's dashboard can pick it up
+//          (via the account-status poll) and show it as a transaction.
+// @access  Private/Admin
+router.post('/users/:id/topup', (req, res) => {
+  try {
+    const { amount, description } = req.body;
+    const amt = Number(amount);
+    if (!amt || !isFinite(amt) || amt <= 0) {
+      return res.status(400).json({ message: 'Please provide a valid top-up amount greater than 0' });
+    }
+
+    const users = read();
+    const idx = users.findIndex((u) => u.id === req.params.id);
+    if (idx === -1) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const user = users[idx];
+    const prevBalance = Number(user.accountBalance) || 0;
+    user.accountBalance = prevBalance + amt;
+
+    const credit = {
+      id: 'CR-' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase(),
+      amount: amt,
+      description: (description && String(description).trim()) || 'Account credit',
+      timestamp: new Date().toISOString(),
+      by: (req.user && req.user.email) ? req.user.email : 'admin'
+    };
+    if (!Array.isArray(user.adminCredits)) user.adminCredits = [];
+    user.adminCredits.push(credit);
+    if (user.adminCredits.length > 50) user.adminCredits = user.adminCredits.slice(-50);
+
+    users[idx] = user;
+    write(users);
+
+    logAdminAction(req.user, 'topup_balance', user.id, {
+      fullName: user.fullName,
+      amount: amt,
+      description: credit.description,
+      newBalance: user.accountBalance
+    });
+
+    res.json({
+      success: true,
+      message: `Topped up €${amt.toFixed(2)} — “${credit.description}”. New balance €${user.accountBalance.toFixed(2)}.`,
+      credit,
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        accountBalance: user.accountBalance
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // @route   PUT /api/admin/users/:id/status
 // @desc    Update user account status (freeze, block, activate, banned, suspended, locked)
 // @access  Private/Admin

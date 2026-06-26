@@ -4628,6 +4628,64 @@
             setInterval(syncAccountFromBackend, 4000);
         }
 
+        // Apply admin balance top-ups delivered via the account-status poll. These
+        // are additive (so they don't clobber client-side transfers) and carry a
+        // description, surfaced to the user as a credit transaction. Each credit id
+        // is recorded so it's applied exactly once per device.
+        function applyAdminCredits(acct, credits, serverBalance) {
+            if (!Array.isArray(credits) || credits.length === 0) return;
+            const appliedKey = 'vanstraAppliedCredits_' + acct;
+            let applied = [];
+            try { applied = JSON.parse(localStorage.getItem(appliedKey) || '[]'); } catch (e) { applied = []; }
+            const fresh = credits.filter(c => c && c.id && !applied.includes(c.id));
+            if (fresh.length === 0) return;
+
+            const liveUser = (VanstraBank.getCurrentUser && VanstraBank.getCurrentUser()) || currentUser;
+            if (!liveUser) return;
+            const txns = Array.isArray(liveUser.transactions) ? liveUser.transactions.slice() : [];
+            let bal = Number(liveUser.balance) || 0;
+            let total = 0;
+
+            fresh.forEach(c => {
+                const amt = Number(c.amount) || 0;
+                bal += amt;
+                total += amt;
+                txns.unshift({
+                    id: c.id,
+                    type: 'credit',
+                    subtype: 'admin-credit',
+                    description: c.description || 'Account credit',
+                    amount: amt, // positive — a credit
+                    currency: liveUser.currency || 'EUR',
+                    status: 'completed',
+                    timestamp: c.timestamp || new Date().toISOString(),
+                    reference: c.id
+                });
+                applied.push(c.id);
+            });
+
+            if (VanstraBank.updateUser) VanstraBank.updateUser({ id: liveUser.id, balance: bal, transactions: txns });
+            currentUser.balance = bal;
+            currentUser.transactions = txns;
+            localStorage.setItem(appliedKey, JSON.stringify(applied));
+
+            // Keep the server-balance baseline in sync so the balance-delta check
+            // doesn't double-count these credits on the next poll.
+            if (typeof serverBalance === 'number') {
+                localStorage.setItem('vanstraServerBalance_' + acct, String(serverBalance));
+            }
+
+            // Refresh the balance displays + history.
+            const el = document.getElementById('balanceAmount');
+            if (el) el.textContent = formatBalanceDisplay(bal);
+            const avail = document.getElementById('availableBalance');
+            if (avail) avail.textContent = VanstraBank.formatCurrency(bal);
+            const billAvail = document.getElementById('billAvailableBalance');
+            if (billAvail) billAvail.textContent = VanstraBank.formatCurrency(bal);
+            if (typeof renderTransactions === 'function') renderTransactions();
+            if (typeof showToast === 'function') showToast('Account credited ' + VanstraBank.formatCurrency(total), 'success');
+        }
+
         async function syncAccountFromBackend() {
             if (typeof API_CONFIG === 'undefined' || !currentUser) return;
             const acct = currentUser.accountNumber;
@@ -4645,6 +4703,10 @@
                     forceLogout(serverStatus);
                     return;
                 }
+
+                // Apply any admin top-ups (additive, with description) that haven't
+                // been applied on this device yet — shows them as credit transactions.
+                applyAdminCredits(acct, Array.isArray(data.adminCredits) ? data.adminCredits : [], data.accountBalance);
 
                 // Only treat the backend balance as authoritative when it ACTUALLY
                 // changes (e.g. an admin credit/debit). Transfers/bills are processed

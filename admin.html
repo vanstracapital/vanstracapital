@@ -381,6 +381,38 @@
                 </div>
             </div>
 
+            <!-- Top-Up Balance Modal -->
+            <div id="topupModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
+                <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 relative">
+                    <button type="button" onclick="closeTopupModal()" aria-label="Close" title="Close" class="absolute top-4 right-4 text-gray-500 hover:text-gray-900">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    <div class="mb-4">
+                        <h2 class="text-2xl font-semibold text-navy">Top Up Balance</h2>
+                        <p class="text-sm text-gray-500 mt-1">Add funds to this account. The customer sees it as a credit transaction with your description.</p>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 mb-4">
+                        <div class="text-sm text-gray-600">Account:</div>
+                        <div class="mt-1 text-base font-semibold text-navy" id="topupUserLabel">—</div>
+                        <div class="mt-1 text-sm text-gray-500" id="topupBalanceLabel">Current balance: —</div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Amount (EUR)</label>
+                        <input id="topupAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-accent" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                        <input id="topupDescription" type="text" maxlength="80" placeholder="e.g. Salary payment, Refund, Bonus" class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold-accent" />
+                        <p class="text-xs text-gray-500 mt-2">Shown to the customer on the transaction. Defaults to “Account credit”.</p>
+                    </div>
+                    <div class="text-sm text-red-600 mb-3" id="topupModalError"></div>
+                    <div class="flex flex-col sm:flex-row sm:justify-end gap-3">
+                        <button type="button" onclick="closeTopupModal()" class="px-4 py-3 rounded-xl bg-gray-100 text-gray-700 hover:bg-gray-200">Cancel</button>
+                        <button type="button" id="topupSubmitBtn" onclick="applyTopup()" class="px-4 py-3 rounded-xl bg-navy text-white hover:bg-slate-900">Add Funds</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Account Details Modal -->
             <div id="detailsModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 p-4">
                 <div class="bg-white rounded-3xl shadow-2xl w-full max-w-lg p-6 relative">
@@ -625,6 +657,73 @@
             }
         }
 
+        let selectedTopupUser = null;
+
+        function openTopupModal(user) {
+            if (!user || !user.id) { alert('Could not load this account. Please reopen it.'); return; }
+            selectedTopupUser = user;
+            const cur = user.currency || 'EUR';
+            const bal = (Number(user.accountBalance) || 0)
+                .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('topupUserLabel').textContent =
+                `${user.fullName || 'User'} — ${user.accountNumber || user.id}`;
+            document.getElementById('topupBalanceLabel').textContent = `Current balance: ${cur} ${bal}`;
+            document.getElementById('topupAmount').value = '';
+            document.getElementById('topupDescription').value = '';
+            document.getElementById('topupModalError').textContent = '';
+            const modal = document.getElementById('topupModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeTopupModal() {
+            const modal = document.getElementById('topupModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function applyTopup() {
+            const errorEl = document.getElementById('topupModalError');
+            errorEl.textContent = '';
+            if (!selectedTopupUser) { errorEl.textContent = 'No account selected.'; return; }
+
+            const amount = parseFloat(document.getElementById('topupAmount').value);
+            const description = document.getElementById('topupDescription').value.trim();
+            if (!amount || amount <= 0 || !isFinite(amount)) {
+                errorEl.textContent = 'Enter a valid amount greater than 0.';
+                return;
+            }
+
+            const authToken = localStorage.getItem('adminToken') || localStorage.getItem('authToken');
+            if (!authToken) { errorEl.textContent = 'Admin authentication token missing.'; return; }
+
+            const btn = document.getElementById('topupSubmitBtn');
+            const prevLabel = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Adding…';
+            try {
+                const response = await fetch(`${API_BASE_URL}/admin/users/${selectedTopupUser.id}/topup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ amount, description })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message || 'Failed to top up balance');
+
+                closeTopupModal();
+                loadUserAccounts();
+                alert(result.message || 'Balance topped up successfully.');
+            } catch (err) {
+                errorEl.textContent = err.message;
+            } finally {
+                btn.disabled = false;
+                btn.textContent = prevLabel;
+            }
+        }
+
         function closeDetailsModal() {
             const modal = document.getElementById('detailsModal');
             modal.classList.add('hidden');
@@ -647,6 +746,7 @@
                 if (!response.ok) throw new Error(data.message || `HTTP ${response.status}`);
 
                 const u = data.user || data;
+                window.__detailsUser = u; // stash for the Top-Up modal
                 const currency = u.currency || 'EUR';
                 const bal = (u.accountBalance != null ? u.accountBalance : 0)
                     .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -673,7 +773,8 @@
                     ${row('Transactions', txCount)}
                     ${row('Member Since', created)}
                     ${row('Last Login', lastLogin)}
-                    <div class="pt-3">
+                    <div class="pt-3 grid gap-2">
+                        <button type="button" onclick="closeDetailsModal(); openTopupModal(window.__detailsUser)" class="w-full px-4 py-3 rounded-xl bg-gold-accent text-white hover:bg-opacity-90 text-sm font-semibold">Top Up Balance</button>
                         <button type="button" onclick="closeDetailsModal(); openStatusModal('${u.id}', '${status.toLowerCase()}')" class="w-full px-4 py-3 rounded-xl bg-navy text-white hover:bg-slate-900 text-sm font-semibold">Manage Status (Suspend / Freeze)</button>
                     </div>`;
             } catch (err) {
