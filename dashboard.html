@@ -5335,44 +5335,73 @@
         }
 
         function processPin(pin) {
-            // CRITICAL: Verify PIN before processing transaction
-            const pinCheck = VanstraBank.verifyPin(currentUser.id, pin);
-            
-            if (!pinCheck.success) {
-                document.getElementById('pinError').textContent = pinCheck.error;
-                document.getElementById('pinError').classList.add('show');
-                document.getElementById('pinInput').value = '';
-                updatePinDisplay();
-                return;
-            }
-            
-            // PIN verified, process transaction
-            closeModal('pinModal');
-            
-            let result;
-            if (pendingTransaction.type === 'transfer') {
-                result = VanstraBank.transfer(currentUser.id, pin, pendingTransaction);
-            } else if (pendingTransaction.type === 'paybill') {
-                result = VanstraBank.payBill(currentUser.id, pin, pendingTransaction);
-            } else if (pendingTransaction.type === 'deposit') {
-                result = VanstraBank.submitDeposit(currentUser.id, pin, pendingTransaction);
-            }
-            
-            if (result.success) {
-                showToast('Transaction completed!', 'success');
-                currentUser = VanstraBank.getCurrentUser();
-                window.lastProcessedTransaction = result.transaction || window.lastProcessedTransaction;
-                loadUserData();
-                renderTransactions();
-                
-                if (result.transaction && result.transaction.id) {
-                    showReceipt(result.transaction.id, { justCompleted: true });
+            // This runs from a setTimeout, so an uncaught throw here would vanish
+            // silently (no toast, no visible error) — making a transaction look
+            // like it "did nothing". Guard everything and always surface a reason.
+            try {
+                if (!currentUser || !currentUser.id) {
+                    showToast('Your session expired. Please sign in again.', 'error');
+                    closeModal('pinModal');
+                    return;
                 }
-            } else {
-                showToast(result.error, 'error');
+                if (!pendingTransaction) {
+                    showToast('No transaction to confirm. Please start again.', 'error');
+                    closeModal('pinModal');
+                    return;
+                }
+
+                // CRITICAL: Verify PIN before processing transaction
+                const pinCheck = VanstraBank.verifyPin(currentUser.id, pin);
+
+                if (!pinCheck.success) {
+                    document.getElementById('pinError').textContent = pinCheck.error;
+                    document.getElementById('pinError').classList.add('show');
+                    document.getElementById('pinInput').value = '';
+                    updatePinDisplay();
+                    // Also toast it so the reason is unmissable
+                    showToast(pinCheck.error || 'Incorrect PIN.', 'error');
+                    return;
+                }
+
+                // PIN verified, process transaction
+                closeModal('pinModal');
+
+                let result;
+                if (pendingTransaction.type === 'transfer') {
+                    result = VanstraBank.transfer(currentUser.id, pin, pendingTransaction);
+                } else if (pendingTransaction.type === 'paybill') {
+                    result = VanstraBank.payBill(currentUser.id, pin, pendingTransaction);
+                } else if (pendingTransaction.type === 'deposit') {
+                    result = VanstraBank.submitDeposit(currentUser.id, pin, pendingTransaction);
+                } else {
+                    showToast('Unsupported transaction type: ' + pendingTransaction.type, 'error');
+                    return;
+                }
+
+                if (!result) {
+                    showToast('Transaction could not be processed. Please try again.', 'error');
+                    return;
+                }
+
+                if (result.success) {
+                    showToast('Transaction completed!', 'success');
+                    currentUser = VanstraBank.getCurrentUser();
+                    window.lastProcessedTransaction = result.transaction || window.lastProcessedTransaction;
+                    loadUserData();
+                    renderTransactions();
+
+                    if (result.transaction && result.transaction.id) {
+                        showReceipt(result.transaction.id, { justCompleted: true });
+                    }
+                } else {
+                    showToast(result.error || 'Transaction failed. Please try again.', 'error');
+                }
+            } catch (err) {
+                console.error('processPin error:', err);
+                showToast('Something went wrong processing your transaction: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+            } finally {
+                pendingTransaction = null;
             }
-            
-            pendingTransaction = null;
         }
 
         // Deposit

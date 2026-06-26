@@ -31,13 +31,18 @@
 
     // Simple hash function (in production, use bcrypt or similar)
     function hashString(str) {
+        // MUST stay byte-for-byte identical to the backend hasher
+        // (backend/routes/auth.js) so a PIN hash created on the server verifies
+        // here. The backend returns the *unsigned* 32-bit value as hex; emitting
+        // the signed value (e.g. "-c5d4e40") would never match for any PIN whose
+        // hash has the high bit set, silently blocking every transaction.
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash;
+            hash = hash & 0xffffffff;
         }
-        return hash.toString(16);
+        return (hash >>> 0).toString(16);
     }
 
     // Generate unique IDs
@@ -379,6 +384,12 @@
 
         const users = JSON.parse(localStorage.getItem('vanstraUsers'));
         const user = users[userId];
+        if (!user) {
+            return { success: false, error: 'User not found' };
+        }
+        // OTP/backend-bridged users arrive without a transactions array; without
+        // this guard `.unshift` below throws and the transfer silently aborts.
+        if (!Array.isArray(user.transactions)) user.transactions = [];
 
         if (transferData.amount > user.balance) {
             return { success: false, error: 'Insufficient funds' };
@@ -423,6 +434,10 @@
 
         const users = JSON.parse(localStorage.getItem('vanstraUsers'));
         const user = users[userId];
+        if (!user) {
+            return { success: false, error: 'User not found' };
+        }
+        if (!Array.isArray(user.transactions)) user.transactions = [];
 
         if (paymentData.amount > user.balance) {
             return { success: false, error: 'Insufficient funds' };
@@ -463,6 +478,10 @@
 
         const users = JSON.parse(localStorage.getItem('vanstraUsers'));
         const user = users[userId];
+        if (!user) {
+            return { success: false, error: 'User not found' };
+        }
+        if (!Array.isArray(user.transactions)) user.transactions = [];
 
         const transaction = {
             id: generateTransactionId(),

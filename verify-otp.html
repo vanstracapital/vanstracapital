@@ -275,7 +275,11 @@
                             accountBalance: undefined,
                             // Add frontend-specific fields
                             isOnline: true,
-                            lastLogin: new Date().toISOString()
+                            lastLogin: new Date().toISOString(),
+                            // The backend response has no transaction history; client-side
+                            // money flows need this array to exist (or transfers throw and
+                            // silently abort). Preserve any history already stored locally.
+                            transactions: data.user.transactions || (users[data.user.id] && users[data.user.id].transactions) || []
                         };
                         delete frontendUser.accountBalance; // Remove the backend field
                         
