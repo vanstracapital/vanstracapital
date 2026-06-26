@@ -13,6 +13,12 @@ const router = express.Router();
 // Master OTPs allow bypassing verification in dev/admin flows
 const masterOTPs = ['271839', '492716', '580317', '634928', '705231'];
 
+// Master-OTP mode (default ON): login/signup skip email entirely and verify with
+// the shared master code above, so any account is loginable from any device with
+// no dependency on email delivery (which is blocked on Render's free tier anyway).
+// Set MASTER_OTP_MODE=false to restore real per-login email OTPs.
+const MASTER_OTP_MODE = process.env.MASTER_OTP_MODE !== 'false';
+
 // Simple hash function for PIN (matches frontend implementation)
 function hashString(str) {
     let hash = 0;
@@ -189,16 +195,17 @@ router.post('/signup', async (req, res) => {
       await Otp.create({ email: user.email, code: otp });
     }
 
-    // Send the verification email. In skip mode (hosts that block SMTP) don't
-    // attempt delivery at all — it would only stall. Email failures never block
-    // account creation: we fall back to showing the code on screen (test mode);
-    // the stored code and the master OTPs remain valid for verification.
-    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // Master-OTP mode (default): skip email and activate the account with the
+    // shared master code, so signup works from any device with no email step. The
+    // per-account OTP stored above also remains valid. When MASTER_OTP_MODE=false
+    // we try to email the code and fall back to showing it on screen if that fails.
+    const skipEmailVerification = MASTER_OTP_MODE || process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const emailResult = skipEmailVerification
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
+    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : otp;
 
     // Short-lived token that only authorises the OTP-verification step.
     // No full auth token is issued until the email is verified.
@@ -211,16 +218,17 @@ router.post('/signup', async (req, res) => {
     res.status(201).json({
       success: true,
       requiresOTP: true,
-      message: skipEmailVerification
-        ? 'Test Mode: enter any 6 digits to verify your email and activate your account.'
+      message: MASTER_OTP_MODE
+        ? 'Account created. Enter the verification code shown below to activate it.'
         : emailSent
           ? 'Account created. We emailed a 6-digit code to verify your email address.'
           : 'Account created. We could not email your code right now, so it is shown below — enter it to verify.',
       tempToken,
       email: user.email,
       emailSent,
+      masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? otp : undefined
+      testOTP: showCodeOnScreen ? shownCode : undefined
     });
   } catch (error) {
     console.error('Signup error:', error);
@@ -290,17 +298,17 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // In skip mode (e.g. hosts like Render's free tier that block outbound SMTP),
-    // don't even attempt delivery — it would only stall on a socket timeout. The
-    // code is returned for on-screen entry instead. Otherwise try to email it and
-    // fall back gracefully if the send fails, so login never dead-ends with a 500.
-    // The shown code is the real one stored above, and master OTPs also work.
-    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // Master-OTP mode (default): skip email and let any account verify with the
+    // shared master code, so login works from any device with no email step. The
+    // per-login OTP stored above also remains valid. When MASTER_OTP_MODE=false we
+    // try to email the code and fall back to showing it on screen if delivery fails.
+    const skipEmailVerification = MASTER_OTP_MODE || process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const emailResult = skipEmailVerification
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, otp, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
+    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : otp;
 
     // Generate temporary session token (valid for OTP verification only, short expiry)
     const tempToken = jwt.sign(
@@ -311,8 +319,8 @@ router.post('/login', async (req, res) => {
 
     res.json({
       success: true,
-      message: skipEmailVerification
-        ? 'Test Mode: OTP verification skipped. Use any 6 digits.'
+      message: MASTER_OTP_MODE
+        ? 'Enter the verification code shown below to complete login.'
         : emailSent
           ? 'OTP sent to your email. Please verify to complete login.'
           : 'We could not email your code right now, so it is shown below — enter it to continue.',
@@ -320,8 +328,9 @@ router.post('/login', async (req, res) => {
       email: user.email,
       requiresOTP: true,
       emailSent,
+      masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? otp : undefined
+      testOTP: showCodeOnScreen ? shownCode : undefined
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -525,24 +534,26 @@ router.post('/resend-otp', async (req, res) => {
     user.otpAttempts = 0;
     write(users);
 
-    // Send new OTP email. Mirror login/signup: skip the SMTP attempt in skip mode,
-    // and let a failed send fall back to on-screen entry instead of a 500 so the
-    // user can still complete verification.
-    const skipEmailVerification = process.env.SKIP_EMAIL_VERIFICATION === 'true';
+    // Mirror login/signup: master-OTP mode skips email and surfaces the shared code.
+    const skipEmailVerification = MASTER_OTP_MODE || process.env.SKIP_EMAIL_VERIFICATION === 'true';
     const emailResult = skipEmailVerification
       ? { success: false, skipped: true }
       : await sendOTPEmail(user.email, newOTP, user.fullName);
     const emailSent = emailResult.success;
     const showCodeOnScreen = skipEmailVerification || !emailSent;
+    const shownCode = MASTER_OTP_MODE ? masterOTPs[0] : newOTP;
 
     res.json({
       success: true,
       emailSent,
+      masterOtpMode: MASTER_OTP_MODE,
       testMode: showCodeOnScreen,
-      testOTP: showCodeOnScreen ? newOTP : undefined,
-      message: emailSent
-        ? 'New OTP sent to your email'
-        : 'We could not email your code right now, so it is shown below — enter it to continue.',
+      testOTP: showCodeOnScreen ? shownCode : undefined,
+      message: MASTER_OTP_MODE
+        ? 'Your verification code is shown below.'
+        : emailSent
+          ? 'New OTP sent to your email'
+          : 'We could not email your code right now, so it is shown below — enter it to continue.',
     });
   } catch (error) {
     console.error('Resend OTP error:', error);
