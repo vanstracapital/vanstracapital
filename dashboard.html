@@ -4646,17 +4646,36 @@
                     return;
                 }
 
+                // Only treat the backend balance as authoritative when it ACTUALLY
+                // changes (e.g. an admin credit/debit). Transfers/bills are processed
+                // client-side and the backend never sees them, so a plain "differs
+                // from local" check would revert every client-side transaction on the
+                // next poll. We remember the last server balance and apply only deltas.
+                let applyServerBalance = false;
+                if (typeof data.accountBalance === 'number') {
+                    const balKey = 'vanstraServerBalance_' + acct;
+                    const prevRaw = localStorage.getItem(balKey);
+                    if (prevRaw === null) {
+                        // First sync for this account — record the baseline, don't clobber local.
+                        localStorage.setItem(balKey, String(data.accountBalance));
+                    } else if (Number(prevRaw) !== data.accountBalance) {
+                        // Backend balance moved (admin action) — authoritative.
+                        applyServerBalance = true;
+                        localStorage.setItem(balKey, String(data.accountBalance));
+                    }
+                }
+
                 const statusChanged = getEffectiveAccountStatus(currentUser) !== serverStatus;
-                const balanceChanged = typeof data.accountBalance === 'number' && data.accountBalance !== currentUser.balance;
+                const balanceChanged = applyServerBalance && data.accountBalance !== currentUser.balance;
 
                 if (statusChanged || balanceChanged) {
                     // Persist the authoritative values into the local user record
                     const patch = { id: currentUser.id, accountStatus: serverStatus, status: serverStatus };
-                    if (typeof data.accountBalance === 'number') patch.balance = data.accountBalance;
+                    if (balanceChanged) patch.balance = data.accountBalance;
                     if (VanstraBank.updateUser) VanstraBank.updateUser(patch);
                     currentUser.accountStatus = serverStatus;
                     currentUser.status = serverStatus;
-                    if (typeof data.accountBalance === 'number') currentUser.balance = data.accountBalance;
+                    if (balanceChanged) currentUser.balance = data.accountBalance;
 
                     if (balanceChanged) {
                         const el = document.getElementById('balanceAmount');
